@@ -19,7 +19,7 @@ class Person extends Hypersistence{
 	protected $email;
 	
 	/**
-	 * @oneToMany(lazy)
+	 * @oneToMany(eager)
 	 * @itemClass(Book)
 	 * @joinColumn(person_id) 
 	 */

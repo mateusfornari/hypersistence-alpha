@@ -17,7 +17,7 @@ require_once './Person.php';
 
 $p = new Person();
 $p->setId(18);
-//$p->load();
+$p->load();
 
 //
 //$p->setName('Mateus Bitencourt');
@@ -27,14 +27,14 @@ $p->setId(18);
 //var_dump($p->save());
 
 
-$b = new Book();
-
-$b->setAuthor($p);
-var_dump($b->search()->execute());
+//$b = new Book();
+//
+//$b->setAuthor($p);
+//var_dump($b->search()->execute());
 
 //$b->setTitle('Test Book');
 
-//var_dump($b);
+var_dump($p->getBooks());
 
 //var_dump($p->delete());
 //DB::getDBConnection()->commit();

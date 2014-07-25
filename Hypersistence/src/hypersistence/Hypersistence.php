@@ -1,6 +1,6 @@
 <?php
 
-require_once './DB.php';
+require_once 'DB.php';
 
 class Hypersistence{
 	
@@ -19,6 +19,11 @@ class Hypersistence{
 	private static $TAG_JOIN_TABLE = 'joinTable';
 	private static $TAG_PRIMARY_KEY = 'primaryKey';
 	private static $TAG_ITEM_CLASS = 'itemClass';
+
+	public function isLoaded(){
+		return $this->loaded;
+	}
+
 
 	public static function init($class){
 		$refClass = new ReflectionClass($class);
@@ -122,6 +127,20 @@ class Hypersistence{
 		}
 		return null;
 	}
+	
+	public static function getPropertyByColumn($className, $column){
+		if($className){
+			while($className != 'Hypersistence'){
+				foreach (self::$map[$className]['properties'] as $p){
+					if($p[self::$TAG_COLUMN] == $column){
+						return $p;
+					}
+				}
+				$className = self::$map[$className]['parent'];
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * @param boolean $forceReload
@@ -208,12 +227,21 @@ class Hypersistence{
 								}
 							}
 						}else{
-							if($p['relType'] != self::ONE_TO_MANY){
+						
+							if($p['relType'] == self::ONE_TO_MANY){
 								$objClass = $p[self::$TAG_ITEM_CLASS];
 								self::init($objClass);
-								$obj = new $objClass;
-								
-								$this->$set($obj->search());
+								$objFk = self::getPropertyByColumn($objClass, $p[self::$TAG_JOIN_COLUMN]);
+								if($objFk){
+									$obj = new $objClass;
+									$objSet = 'set'.$objFk['var'];
+									$obj->$objSet($this);
+									$search = $obj->search();
+									if($p['loadType'] == 'eager'){
+										$search = $search->execute();
+									}
+									$this->$set($search);
+								}
 							}
 						}
 					}
@@ -386,20 +414,31 @@ class Hypersistence{
 		return true;
 	}
 	
+	
 	public function search(){
 		return new HypersistenceResultSet($this);
+	}
+	
+	private function searchManyToMany($property){
+		$class = $property['itemClass'];
+		$object = new $class;
+		return new HypersistenceResultSet($object, $this, $property);
 	}
 	
 }
 
 class HypersistenceResultSet{
 	
+	private $srcObject;
+	private $property;
 	private $object;
 	
 	private $resultList;
 	
-	public function __construct($object) {
+	public function __construct($object, $srcObject = null, $property = null) {
 		$this->object = $object;
+		$this->property = $property;
+		$this->srcObject = $srcObject;
 	}
 	
 	public function execute(){
@@ -410,10 +449,19 @@ class HypersistenceResultSet{
 		$bounds = array();
 		$fields = array();
 		$filters = array();
+		$objectRefs = array();
 		
 		$aliases = 'abcdefghijklmnopqrstuvwxyz';
 		
 		$class = $classThis;
+		
+		if($this->property && $this->object){
+			 
+			$srcPk = Hypersistence::getPk($srcClass);
+			$tables[] = $this->property['joinTable'];
+			$filters[] = $this->property['joinTable'].'.'.$this->property['joinColumn'].' = '.$this->property[''];
+		}
+		
 		
 		$i = 0;
 		while ($class != 'Hypersistence'){
@@ -440,6 +488,7 @@ class HypersistenceResultSet{
 							$objPk = Hypersistence::getPk($objClass);
 							$objGet = 'get'.$objPk['var'];
 							$bounds[':'.$alias.'_'.$p['column']] = $value->$objGet();
+							$objectRefs[$alias.'_'.$p['column']] = $value;
 						}else{
 							$bounds[':'.$alias.'_'.$p['column']] = $value;
 						}
@@ -475,23 +524,28 @@ class HypersistenceResultSet{
 								if(isset($result->$column)){
 									$var = $p['var'];
 									$set = 'set'.$var;
-									if(method_exists($object, $set)){
-										if($p['relType'] == Hypersistence::MANY_TO_ONE){
-											$objClass = $p['itemClass'];
-											Hypersistence::init($objClass);
-											$pk = Hypersistence::getPk($objClass);
-											if($pk){
-												$objVar = $pk['var'];
-												$objSet = 'set'.$objVar;
-												$obj = new $objClass;
-												$obj->$objSet($result->$column);
-												$object->$set($obj);
-												if($p['loadType'] == 'eager'){
-													$obj->load();
+									$get = 'get'.$var;
+									if(isset($objectRefs[$column])){
+										$object->$set($objectRefs[$column]);
+									}else{
+										if(method_exists($object, $set)){
+											if($p['relType'] == Hypersistence::MANY_TO_ONE){
+												$objClass = $p['itemClass'];
+												Hypersistence::init($objClass);
+												$pk = Hypersistence::getPk($objClass);
+												if($pk){
+													$objVar = $pk['var'];
+													$objSet = 'set'.$objVar;
+													$obj = new $objClass;
+													$obj->$objSet($result->$column);
+													$object->$set($obj);
+													if($p['loadType'] == 'eager'){
+														$obj->load();
+													}
 												}
+											}else{
+												$object->$set($result->$column);
 											}
-										}else{
-											$object->$set($result->$column);
 										}
 									}
 								}
