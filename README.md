@@ -112,7 +112,9 @@ echo $p->getName();
 
 $p = new Person();
 $p->setName('Mateus Fornari');
-$p->setCity(new City(1, 'San Francisco');
+$city = new City(1);
+$city->load();
+$p->setCity($city);
 $p->save();
 
 </pre>
