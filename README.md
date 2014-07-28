@@ -7,9 +7,10 @@ PHP Object Orented persistence framework.
 
 Use doc comment tags for mapping classes with database.
 
-Example:
+<h3>Example:</h3>
 
 <pre>
+<?php
 /**
  * @table(person)
  */
@@ -89,4 +90,18 @@ class Person extends Hypersistence{
         return $this->courses;
     }
 }
+?>
+</pre>
+
+
+<h3>Usage Example</h3>
+
+<pre>
+<?php
+$p = new Person();
+$p->setId(1);
+$p->load();
+
+echo $p->getName();
+?>
 </pre>
