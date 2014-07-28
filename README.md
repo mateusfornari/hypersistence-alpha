@@ -9,6 +9,7 @@ Use doc comment tags for mapping classes with database.
 
 Example:
 
+<pre>
 /**
  * @table(person)
  */
@@ -88,4 +89,4 @@ class Person extends Hypersistence{
         return $this->courses;
     }
 }
-
+</pre>
