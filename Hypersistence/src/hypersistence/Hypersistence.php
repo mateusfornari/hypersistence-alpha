@@ -466,6 +466,9 @@ class Hypersistence{
 							$lastId = DB::getDBConnection()->lastInsertId();
 							if($lastId){
 								$id = $lastId;
+								$pk = self::getPk(self::init($this));
+								$set = 'set'.$pk['var'];
+								$this->$set($id);
 							}
 						}
 					}else{
@@ -499,6 +502,65 @@ class Hypersistence{
 		$class = $property['itemClass'];
 		$object = new $class;
 		return new HypersistenceResultSet($object, $this, $property);
+	}
+	
+	public function __call($name, $arguments) {
+		if(preg_match('/^(add|delete)([A-Za-z_][A-Za-z0-9_]*)/', $name, $matches)){
+			
+			if(isset($matches[2])){
+				$varName = $matches[2];
+				$varName = strtolower($varName[0]).substr($varName, 1);
+				$className = self::init($this);
+				$property = self::getPropertyByVarName($className, $varName);
+				if($property){
+					
+					if($property['relType'] == self::MANY_TO_MANY){
+						
+						$class = $property[self::$TAG_ITEM_CLASS];
+						$obj = $arguments[0];
+						if($obj instanceof $class){
+							
+							$table = $property['joinTable'];
+							$inverseColumn = $property[self::$TAG_INVERSE_JOIN_COLUMN];
+							$column = $property[self::$TAG_JOIN_COLUMN];
+						
+							$pk = self::getPk($className);
+							$inversePk = self::getPk($class);
+							
+							$get = 'get'.$pk['var'];
+							$inverseGet = 'get'.$inversePk['var'];
+							
+							if($matches[1] == 'add'){
+								$sql = "insert into $table ($column, $inverseColumn) values (:column, :inverseColumn)";
+							}else if($matches[1] == 'delete'){
+								$sql = "delete from $table where $column = :column and $inverseColumn = :inverseColumn";
+							}
+							if($stmt = DB::getDBConnection()->prepare($sql)){
+								$stmt->bindValue(':column', $this->$get());
+								$stmt->bindValue(':inverseColumn', $obj->$inverseGet());
+								if($stmt->execute()){
+									return true;
+								}
+							}
+						}else{
+							throw new Exception('You must pass an instance of '.$class.' to '.$name.'!');
+						}
+					}
+					
+				}else{
+					throw new Exception('Property '.$varName.' not found!');
+				}
+			}
+		}
+		return false;
+	}
+	
+	public static function commit(){
+		return DB::getDBConnection()->commit();
+	}
+	
+	public static function rollback(){
+		return DB::getDBConnection()->rollBack();
 	}
 	
 }
@@ -556,7 +618,7 @@ class HypersistenceResultSet{
 			$tables[] = $this->property['joinTable'];
 			$filters[] = $this->property['joinTable'].'.'.$this->property['joinColumn'].' = :'.$this->property['joinTable'].'_'.$this->property['joinColumn'];
             $bounds[':'.$this->property['joinTable'].'_'.$this->property['joinColumn']] = $srcId;
-            $filters[] = $this->property['joinTable'].'.'.$this->property['inverseJoinColumn'].' = '.$aliases[$pk['i']].'.'.$pk['column'];
+            $filters[] = $this->property['joinTable'].'.'.$this->property['inverseJoinColumn'].' = '.$this->chars[$pk['i']].'.'.$pk['column'];
 		}
 		
 		

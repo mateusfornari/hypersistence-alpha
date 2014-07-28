@@ -49,6 +49,10 @@ class Person extends Hypersistence{
 	public function getBooks() {
 		return $this->books;
 	}
+	
+	public function setBooks($books) {
+		$this->books = $books;
+	}
 
 	public function setId($id) {
 		$this->id = $id;
@@ -62,9 +66,6 @@ class Person extends Hypersistence{
 		$this->email = $email;
 	}
 
-	public function setBooks($books) {
-		$this->books = $books;
-	}
 	public function getCity() {
 		return $this->city;
 	}
@@ -77,105 +78,5 @@ class Person extends Hypersistence{
 
 }
 
-/**
- * @table(student)
- * @joinColumn(id)
- */
-class Student extends Person{
-	/**
-	 * @column()
-	 */
-	private $number;
-    
-    /**
-     * @manyToMany(eager)
-     * @joinTable(student_course)
-     * @joinColumn(student_id)
-     * @inverseJoinColumn(course_id)
-     * @itemClass(Course)
-     */
-    private $courses;
-    
-	public function getNumber() {
-		return $this->number;
-	}
-
-	public function setNumber($number) {
-		$this->number = $number;
-	}
-
-    public function getCourses() {
-        return $this->courses;
-    }
-
-    public function setCourses($courses) {
-        $this->courses = $courses;
-    }
 
 
-}
-
-/**
- * @table(book)
- */
-class Book extends Hypersistence{
-	
-	/**
-	 * @column(id)
-	 * @primaryKey 
-	 */
-	private $id;
-	
-	/**
-	 * @column(person_id)
-	 * @manyToOne(lazy) 
-	 * @itemClass(Person)
-	 */
-	private $author;
-	
-    /**
-	 * @column(student_id)
-	 * @manyToOne(lazy) 
-	 * @itemClass(Student)
-     * @nullable
-	 */
-	private $student;
-    
-	/**
-	 * @column()
-	 */
-	private $title;
-	public function getId() {
-		return $this->id;
-	}
-
-	public function getAuthor() {
-		return $this->author;
-	}
-
-	public function getTitle() {
-		return $this->title;
-	}
-
-	public function setId($id) {
-		$this->id = $id;
-	}
-
-	public function setAuthor($author) {
-		$this->author = $author;
-	}
-
-	public function setTitle($title) {
-		$this->title = $title;
-	}
-
-    public function getStudent() {
-        return $this->student;
-    }
-
-    public function setStudent($student) {
-        $this->student = $student;
-    }
-
-
-}

@@ -29,6 +29,18 @@ class DB extends PDO{
 	public static function destroy(){
 		self::$conn = null;
 	}
+	
+	public function commit(){
+		$r = parent::commit();
+		parent::beginTransaction();
+		return $r;
+	}
+	
+	public function rollback(){
+		$r = parent::rollBack();
+		parent::beginTransaction();
+		return $r;
+	}
 }
 
 class ResultSet extends PDOStatement{

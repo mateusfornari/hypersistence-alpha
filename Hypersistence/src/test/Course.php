@@ -14,7 +14,7 @@ class Course extends Hypersistence{
     
     /**
      * @manyToMany(eager)
-     * @joinTable(student_course)
+     * @joinTable(student_has_course)
      * @joinColumn(course_id)
      * @inverseJoinColumn(student_id)
      * @itemClass(Student) 
@@ -41,11 +41,10 @@ class Course extends Hypersistence{
     public function getStudents() {
         return $this->students;
     }
-
-    public function setStudents($students) {
-        $this->students = $students;
-    }
-
+	
+	public function setStudents($students) {
+		$this->students = $students;
+	}
 
 }
 ?>

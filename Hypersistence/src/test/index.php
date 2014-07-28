@@ -2,70 +2,111 @@
 
 require_once '../hypersistence/Hypersistence.php';
 require_once './Person.php';
+require_once './Book.php';
+require_once './Student.php';
 require_once './Course.php';
 require_once './City.php';
 
-//$p = new Student();
-//
-//$p->setId(3);
-//$p->load();
+//SAVE
+$c = new City();
+$c->setName('San Francisco');
 
-//$b = new Book();
-//$b->setId(3);
-//$b->load();
-//
-//var_dump($b->delete());
+$c->save();
 
 
-//$p = new Student();
-//$p->setId(47);
-//$p->load();
 
-//
-//$p->setName('Mateus Bitencourt');
-//$p->setEmail('mateusfornari@hotmail.com');
-//$p->setNumber('123456');
-//
-//var_dump($p->save());
+$s = new Student();
+$s->setCity($c);
+$s->setEmail('test@hypersistence.com');
+$s->setName('Mateus Fornari');
+$s->setNumber('123456');
+
+$s->save();
 
 
-//$b = new Book();
-//
-//$b->setAuthor($p);
-//var_dump($b->search()->execute());
 
-//$b->setTitle('Test Book');
+$course = new Course();
+$course->setDescription('PHP Programming');
 
-//var_dump($p);
+$course->save();
 
-//var_dump($p->delete());
-//DB::getDBConnection()->commit();
+$s->addCourses($course);
 
-//$c = new Course();
-//$c->setId(2);
-//$c->load();
-//
-//var_dump($c);
+
+
+$p = new Person();
+$p->setCity($c);
+$p->setEmail('other@hypersistence.com');
+$p->setName('Other Person');
+
+$p->save();
+
+
 
 $b = new Book();
-$b->setTitle('Bo');
-$books = $b->search()->orderBy('title')->orderBy('author.city.name')->execute();
-//$books->orderBy('author.city.name');
-//$books->orderBy('author.id', 'desc');
-//$list = $books->execute();
+$b->setAuthor($p);
+$b->setTitle('PHP Book');
 
-foreach ($books as $l){
-    $name = $l->getAuthor()->load()->getCity()->load()->getName();
-    echo "{$l->getTitle()} - $name\n";
+$b->save();
+Hypersistence::commit();
+
+
+//LOAD
+$p = new Person();
+$p->setId(2);
+$p->load();
+
+echo $p->getName()."\n";
+
+$books = $p->getBooks();
+
+foreach ($books as $b){
+	echo $b->getTitle()."\n";
 }
 
-//var_dump($books);
+$s = new Student();
+$s->setId(1);
+$s->load();
 
-//try{
-//$p = new Person();
-//$p->setId(4);
-//$p->load();
-//var_dump($p->getBooks());
-//}  catch (Exception $e){
-//	var_dump($e->getMessage());
-//}
+echo $s->getName()."\n";
+
+$courses = $s->getCourses();
+foreach ($courses as $c){
+	echo $c->getDescription()."\n";
+	$course = $c;
+}
+
+$s->deleteCourses($course);
+Hypersistence::commit();
+$s->load(true);
+
+$courses = $s->getCourses();
+foreach ($courses as $c){
+	echo $c->getDescription()."\n";
+}
+
+$c = new Course();
+$c->setId(1);
+$c->load();
+
+echo $c->getDescription()."\n";
+
+$students = $c->getStudents();
+foreach ($students as $s){
+	echo $s->getName()."\n";
+}
+
+
+//SEARCH
+
+$p = new Person();
+
+$p->setName('Mat');
+
+$search = $p->search();
+$search->orderBy('name');
+
+$list = $search->execute();
+foreach ($list as $p){
+	echo $p->getName()."\n";
+}
