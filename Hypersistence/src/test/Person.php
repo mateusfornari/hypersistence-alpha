@@ -70,6 +70,16 @@ class Student extends Person{
 	 * @column()
 	 */
 	private $number;
+    
+    /**
+     * @manyToMany(eager)
+     * @joinTable(student_course)
+     * @joinColumn(student_id)
+     * @inverseJoinColumn(course_id)
+     * @itemClass(Course)
+     */
+    private $courses;
+    
 	public function getNumber() {
 		return $this->number;
 	}
@@ -77,6 +87,14 @@ class Student extends Person{
 	public function setNumber($number) {
 		$this->number = $number;
 	}
+
+    public function getCourses() {
+        return $this->courses;
+    }
+
+    public function setCourses($courses) {
+        $this->courses = $courses;
+    }
 
 
 }
@@ -99,6 +117,14 @@ class Book extends Hypersistence{
 	 */
 	private $author;
 	
+    /**
+	 * @column(student_id)
+	 * @manyToOne(eager) 
+	 * @itemClass(Student)
+     * @nullable
+	 */
+	private $student;
+    
 	/**
 	 * @column()
 	 */
@@ -126,6 +152,14 @@ class Book extends Hypersistence{
 	public function setTitle($title) {
 		$this->title = $title;
 	}
+
+    public function getStudent() {
+        return $this->student;
+    }
+
+    public function setStudent($student) {
+        $this->student = $student;
+    }
 
 
 }

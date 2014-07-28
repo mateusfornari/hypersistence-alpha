@@ -19,6 +19,7 @@ class Hypersistence{
 	private static $TAG_JOIN_TABLE = 'joinTable';
 	private static $TAG_PRIMARY_KEY = 'primaryKey';
 	private static $TAG_ITEM_CLASS = 'itemClass';
+	private static $TAG_NULLABLE = 'nullable';
 
 	public function isLoaded(){
 		return $this->loaded;
@@ -61,7 +62,8 @@ class Hypersistence{
 								self::$TAG_JOIN_COLUMN => self::getAnnotationValue($p, self::$TAG_JOIN_COLUMN),
 								self::$TAG_ITEM_CLASS => self::getAnnotationValue($p, self::$TAG_ITEM_CLASS),
 								self::$TAG_JOIN_TABLE => self::getAnnotationValue($p, self::$TAG_JOIN_TABLE),
-								self::$TAG_INVERSE_JOIN_COLUMN => self::getAnnotationValue($p, self::$TAG_INVERSE_JOIN_COLUMN)
+								self::$TAG_INVERSE_JOIN_COLUMN => self::getAnnotationValue($p, self::$TAG_INVERSE_JOIN_COLUMN),
+                                self::$TAG_NULLABLE => self::is($p, self::$TAG_NULLABLE)
 							);
 						}
 					}
@@ -137,6 +139,22 @@ class Hypersistence{
 					}
 				}
 				$className = self::$map[$className]['parent'];
+			}
+		}
+		return null;
+	}
+	public static function getPropertyByVarName($className, $varName){
+		if($className){
+            $i = 0;
+			while($className != 'Hypersistence'){
+				foreach (self::$map[$className]['properties'] as $p){
+					if($p['var'] == $varName){
+                        $p['i'] = $i;
+						return $p;
+					}
+				}
+				$className = self::$map[$className]['parent'];
+                $i++;
 			}
 		}
 		return null;
@@ -242,7 +260,12 @@ class Hypersistence{
 									}
 									$this->$set($search);
 								}
-							}
+							}else if($p['relType'] == self::MANY_TO_MANY){
+                                $search = $this->searchManyToMany($p);
+                                if($p['loadType'] == 'eager')
+                                    $search = $search->execute();
+                                $this->$set($search);
+                            }
 						}
 					}
 
@@ -390,7 +413,7 @@ class Hypersistence{
 				}
 				
 			}
-			var_dump($sql);
+			
 			if($sql != ''){
 				if($stmt = DB::getDBConnection()->prepare($sql)){
 					if($stmt->execute($bounds)){
@@ -433,7 +456,16 @@ class HypersistenceResultSet{
 	private $property;
 	private $object;
 	
-	private $resultList;
+    private $rows = 0;
+    private $offset = 0;
+    private $page = 0;
+    private $totalRows = 0;
+    private $totalPages = 0;
+	private $resultList = array();
+    
+    private $chars = 'abcdefghijklmnopqrstuvwxyz';
+    private $joins = array();
+    private $orderBy = array();
 	
 	public function __construct($object, $srcObject = null, $property = null) {
 		$this->object = $object;
@@ -442,7 +474,10 @@ class HypersistenceResultSet{
 	}
 	
 	public function execute(){
-		$this->resultList = array();
+		$this->totalRows = 0;
+        $this->totalPages = 0;
+        $this->resultList = array();
+        
 		$classThis = Hypersistence::init($this->object);
 		
 		$tables = array();
@@ -451,38 +486,44 @@ class HypersistenceResultSet{
 		$filters = array();
 		$objectRefs = array();
 		
-		$aliases = 'abcdefghijklmnopqrstuvwxyz';
-		
 		$class = $classThis;
 		
+        //When it is a many to many relation.
 		if($this->property && $this->object){
-			 
+			$srcClass = Hypersistence::init($this->srcObject);
 			$srcPk = Hypersistence::getPk($srcClass);
+            $srcGet = 'get'.$srcPk['var'];
+            $srcId = $this->srcObject->$srcGet();
+            $pk = Hypersistence::getPk($class);
+            
 			$tables[] = $this->property['joinTable'];
-			$filters[] = $this->property['joinTable'].'.'.$this->property['joinColumn'].' = '.$this->property[''];
+			$filters[] = $this->property['joinTable'].'.'.$this->property['joinColumn'].' = :'.$this->property['joinTable'].'_'.$this->property['joinColumn'];
+            $bounds[':'.$this->property['joinTable'].'_'.$this->property['joinColumn']] = $srcId;
+            $filters[] = $this->property['joinTable'].'.'.$this->property['inverseJoinColumn'].' = '.$aliases[$pk['i']].'.'.$pk['column'];
 		}
 		
 		
 		$i = 0;
 		while ($class != 'Hypersistence'){
-			$alias = $aliases[$i];
+			$alias = $this->chars[$i];
 			$tables[] = Hypersistence::$map[$class]['table'].' '.$alias;
 			
 			if(Hypersistence::$map[$class]['parent'] != 'Hypersistence'){
+                $parentAlias = $this->chars[$i + 1];
 				$parent = Hypersistence::$map[$class]['parent'];
 				$pk = Hypersistence::getPk(Hypersistence::$map[$parent]['class']);
-				$filters[] = $alias.'.'.Hypersistence::$map[$class]['joinColumn'].' = '.$aliases[$i + 1].'.'.$pk['column'];
+				$filters[] = $alias.'.'.Hypersistence::$map[$class]['joinColumn'].' = '.$parentAlias.'.'.$pk['column'];
 			}
 			
 			foreach (Hypersistence::$map[$class]['properties'] as $p){
 				if($p['relType'] != Hypersistence::MANY_TO_MANY && $p['relType'] != Hypersistence::ONE_TO_MANY){
 					$fields[] = $alias.'.'.$p['column'].' as '.$alias.'_'.$p['column'];
-					
+                    
 					$get = 'get'.$p['var'];
 					$value = $this->object->$get();
 					if(!is_null($value)){
-						$filters[] = $alias.'.'.$p['column'].' = :'.$alias.'_'.$p['column'];
 						if($value instanceof Hypersistence){
+                            $filters[] = $alias.'.'.$p['column'].' = :'.$alias.'_'.$p['column'];
 							$objClass = $p['itemClass'];
 							Hypersistence::init($objClass);
 							$objPk = Hypersistence::getPk($objClass);
@@ -490,7 +531,13 @@ class HypersistenceResultSet{
 							$bounds[':'.$alias.'_'.$p['column']] = $value->$objGet();
 							$objectRefs[$alias.'_'.$p['column']] = $value;
 						}else{
-							$bounds[':'.$alias.'_'.$p['column']] = $value;
+                            if(is_numeric($value)){
+                                $filters[] = $alias.'.'.$p['column'].' = :'.$alias.'_'.$p['column'];
+                                $bounds[':'.$alias.'_'.$p['column']] = $value;
+                            }else{
+                                $filters[] = $alias.'.'.$p['column'].' like :'.$alias.'_'.$p['column'];
+                                $bounds[':'.$alias.'_'.$p['column']] = '%'.$value.'%';
+                            }
 						}
 					}
 					
@@ -505,8 +552,31 @@ class HypersistenceResultSet{
 			$where = ' where '.  implode(' and ', $filters);
 		else
 			$where = '';
+        
+		$sql = 'select count(*) as total from '. implode(',', $tables).' '.implode(' ', $this->joins).$where;
+        
+        if ($stmt = DB::getDBConnection()->prepare($sql)) {
+            if ($stmt->execute($bounds) && $stmt->rowCount() > 0) {
+                $result = $stmt->fetchObject();
+                $this->totalRows = $result->total;
+                $this->totalPages = $this->rows > 0 ? ceil($this->totalRows / $this->rows) : 1;
+            } else {
+                return false;
+            }
+        }
+        
+        $offset = $this->page > 0 ? ($this->page - 1) * $this->rows : $this->offset;
+        $bounds[':offset'] = array($offset, PDO::PARAM_INT);
+
+        $bounds[':limit'] = array(intval($this->rows > 0 ? $this->rows : $this->totalRows), PDO::PARAM_INT);
+
+        
+        if(count($this->orderBy))
+            $orderBy = ' order by '.implode (',', $this->orderBy);
+        else
+            $orderBy = '';
 		
-		$sql = 'select '.implode(',', $fields).' from '.  implode(',', $tables).$where;
+		$sql = 'select '.implode(',', $fields).' from '. implode(',', $tables).' '.implode(' ', $this->joins).$where.$orderBy. ' LIMIT :limit OFFSET :offset';
 		
 		if($stmt = DB::getDBConnection()->prepare($sql)){
 			
@@ -517,7 +587,7 @@ class HypersistenceResultSet{
 					$object = new $class;
 					$i = 0;
 					while ($class != 'Hypersistence'){
-						$alias = $aliases[$i];
+						$alias = $this->chars[$i];
 						foreach (Hypersistence::$map[$class]['properties'] as $p){
 							if($p['relType'] != Hypersistence::MANY_TO_MANY && $p['relType'] != Hypersistence::ONE_TO_MANY){
 								$column = $alias.'_'.$p['column'];
@@ -564,4 +634,96 @@ class HypersistenceResultSet{
 		
 	}
 	
+    public function fetchAll($orderBy = '')
+    {
+        $this->rows = 0;
+        $this->offset = 0;
+        $this->page = 0;
+        if ($this->execute())
+            return $this->resultList;
+        else
+            return array();
+    }
+    
+    public function orderBy($orderBy, $orderDirection = 'asc'){
+        
+        $className = Hypersistence::init($this->object);
+        
+        $order = preg_replace('/[ \t]/', '', $orderBy);
+        $parts = explode('.', $orderBy);
+        
+        $var = $parts[0];
+        $parts = array_slice($parts, 1);
+        
+        $p = Hypersistence::getPropertyByVarName($className, $var);
+        
+        $this->joinWith($className, $p, $parts, $orderDirection);
+        
+    }
+    
+    private function joinWith($className, $property, $parts, $orderDirection, $alias = ''){
+        $auxClass = $property['itemClass'];
+        if($alias == ''){
+            $alias = $className.'_';
+        }
+        $var = $parts[0];
+        $alias .= $property['var'].'_';
+        $classAlias = $this->chars[$property['i']];
+        $parts = array_slice($parts, 1);
+        $i = 0;
+        while ($auxClass != 'Hypersistence'){
+            Hypersistence::init($auxClass);
+            $table = Hypersistence::$map[$auxClass]['table'];
+            $char = $this->chars[$i];
+            $pk = Hypersistence::getPk($auxClass);
+            $join = 'left join '.$table.' '.$alias.$char.' on('.$alias.$char.'.'.$pk['column'].' = '.$classAlias.'.'.$property['column'].')';
+            $this->joins[md5($join)] = $join;
+            $classAlias = $alias.$char;
+            $property = $pk;
+            foreach (Hypersistence::$map[$auxClass]['properties'] as $p){
+                if($p['var'] == $var){
+                    if($p['relType'] == Hypersistence::MANY_TO_ONE){
+                        $this->joinWith($auxClass, $p, $parts, $orderDirection, $alias);
+                    }else{
+                        $this->orderBy[] = $alias.$char.'.'.$p['column'].' '.$orderDirection;
+                    }
+                    break 2;
+                    
+                }
+            }
+            $auxClass = Hypersistence::$map[$auxClass]['parent'];
+            $i++;
+        }
+    }
+    
+    public function setRows($rows)
+    {
+        $this->rows = $rows >= 0 ? $rows : 0;
+    }
+
+    public function setOffset($offset)
+    {
+        $this->offset = $offset >= 0 ? $offset : 0;
+    }
+
+    public function setPage($page)
+    {
+        $this->page = $page >= 0 ? $page : 0;
+    }
+
+    public function getTotalRows()
+    {
+        return $this->totalRows;
+    }
+
+    public function getTotalPages()
+    {
+        return $this->totalPages;
+    }
+
+    public function getResultList()
+    {
+        return $this->resultList;
+    }
+
 }

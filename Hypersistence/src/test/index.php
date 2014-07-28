@@ -2,6 +2,7 @@
 
 require_once '../hypersistence/Hypersistence.php';
 require_once './Person.php';
+require_once './Course.php';
 
 //$p = new Student();
 //
@@ -15,9 +16,9 @@ require_once './Person.php';
 //var_dump($b->delete());
 
 
-$p = new Person();
-$p->setId(18);
-$p->load();
+//$p = new Student();
+//$p->setId(47);
+//$p->load();
 
 //
 //$p->setName('Mateus Bitencourt');
@@ -34,8 +35,27 @@ $p->load();
 
 //$b->setTitle('Test Book');
 
-var_dump($p->getBooks());
+//var_dump($p);
 
 //var_dump($p->delete());
 //DB::getDBConnection()->commit();
 
+//$c = new Course();
+//$c->setId(2);
+//$c->load();
+//
+//var_dump($c);
+
+$b = new Book();
+$b->setTitle('Bo');
+$books = $b->search();
+$books->orderBy('author.name');
+$books->orderBy('author.id', 'desc');
+$list = $books->execute();
+
+foreach ($list as $l){
+    $name = $l->getAuthor()->load()->getName();
+    echo "{$l->getTitle()} - $name - {$l->getAuthor()->getId()}\n";
+}
+
+//var_dump($books);
