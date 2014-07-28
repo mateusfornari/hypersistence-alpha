@@ -10,7 +10,7 @@ Use doc comment tags for mapping classes with database.
 <h3>Example:</h3>
 
 <pre>
-<?php
+
 /**
  * @table(person)
  */
