@@ -42,9 +42,17 @@ class Hypersistence{
 	private static function mapClass($refClass){
 		if($refClass->name != 'Hypersistence'){
 			if(!isset(self::$map[$refClass->name])){
+				$table = self::getAnnotationValue($refClass, self::$TAG_TABLE);
+				$joinColumn = self::getAnnotationValue($refClass, self::$TAG_JOIN_COLUMN);
+				if(!$table){
+					throw new Exception('You must specify the table for class '.$refClass->name.'!');
+				}
+				if($refClass->getParentClass()->name != 'Hypersistence' && !$joinColumn){
+					throw new Exception('You must specify the join column for subclass '.$refClass->name.'!');
+				}
 				self::$map[$refClass->name] = array(
-					self::$TAG_TABLE => self::getAnnotationValue($refClass, self::$TAG_TABLE),
-					self::$TAG_JOIN_COLUMN => self::getAnnotationValue($refClass, self::$TAG_JOIN_COLUMN),
+					self::$TAG_TABLE => $table,
+					self::$TAG_JOIN_COLUMN => $joinColumn,
 					'parent' => $refClass->getParentClass()->name,
 					'class' => $refClass->name,
 					'properties' => array()
@@ -56,6 +64,33 @@ class Hypersistence{
 						$col = self::getAnnotationValue($p, self::$TAG_COLUMN);
 						$relType = self::getRelType($p);
 						$pk = self::is($p, self::$TAG_PRIMARY_KEY);
+						$itemClass = self::getAnnotationValue($p, self::$TAG_ITEM_CLASS);
+						$joinColumn = self::getAnnotationValue($p, self::$TAG_JOIN_COLUMN);
+						$inverseJoinColumn = self::getAnnotationValue($p, self::$TAG_INVERSE_JOIN_COLUMN);
+						$joinTable = self::getAnnotationValue($p, self::$TAG_JOIN_TABLE);
+						if($relType[0] == self::MANY_TO_ONE && !$itemClass){
+							throw new Exception('You must specify the class of many to one relation ('.$p->name.') in class '.$p->class.'!');
+						}else if($relType[0] == self::ONE_TO_MANY){
+							if(!$itemClass){
+								throw new Exception('You must specify the class of one to many relation ('.$p->name.') in class '.$p->class.'!');
+							}
+							if(!$joinColumn){
+								throw new Exception('You must specify the join column of one to many relation ('.$p->name.') in class '.$p->class.'!');
+							}
+						}else if($relType[0] == self::MANY_TO_MANY){
+							if(!$itemClass){
+								throw new Exception('You must specify the class of many to many relation ('.$p->name.') in class '.$p->class.'!');
+							}
+							if(!$joinColumn){
+								throw new Exception('You must specify the join column of many to many relation ('.$p->name.') in class '.$p->class.'!');
+							}
+							if(!$inverseJoinColumn){
+								throw new Exception('You must specify the inverse join column of many to many relation ('.$p->name.') in class '.$p->class.'!');
+							}
+							if(!$joinTable){
+								throw new Exception('You must specify the join table of many to many relation ('.$p->name.') in class '.$p->class.'!');
+							}
+						}
 						if(!is_null($col) || $relType[0] || $pk){
 							self::$map[$refClass->name]['properties'][$p->name] = array(
 								'var' => $p->name,
@@ -63,10 +98,10 @@ class Hypersistence{
 								self::$TAG_PRIMARY_KEY => $pk,
 								'relType' => $relType[0],
 								'loadType' => $relType[1],
-								self::$TAG_JOIN_COLUMN => self::getAnnotationValue($p, self::$TAG_JOIN_COLUMN),
-								self::$TAG_ITEM_CLASS => self::getAnnotationValue($p, self::$TAG_ITEM_CLASS),
-								self::$TAG_JOIN_TABLE => self::getAnnotationValue($p, self::$TAG_JOIN_TABLE),
-								self::$TAG_INVERSE_JOIN_COLUMN => self::getAnnotationValue($p, self::$TAG_INVERSE_JOIN_COLUMN),
+								self::$TAG_JOIN_COLUMN => $joinColumn,
+								self::$TAG_ITEM_CLASS => $itemClass,
+								self::$TAG_JOIN_TABLE => $joinTable,
+								self::$TAG_INVERSE_JOIN_COLUMN => $inverseJoinColumn,
                                 self::$TAG_NULLABLE => self::is($p, self::$TAG_NULLABLE)
 							);
 						}
@@ -117,6 +152,7 @@ class Hypersistence{
 	}
 	
 	public static function getPk($className){
+		$auxClass = $className;
 		if($className){
 			$i = 0;
 			while($className != 'Hypersistence'){
@@ -131,6 +167,7 @@ class Hypersistence{
 				$i++;
 			}
 		}
+		throw new Exception('No primary key found in class '.$auxClass.'! You must specify a primary key (@primaryKey) in the property that represent it.');
 		return null;
 	}
 	

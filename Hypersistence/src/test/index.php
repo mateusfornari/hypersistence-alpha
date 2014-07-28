@@ -61,7 +61,11 @@ require_once './City.php';
 
 //var_dump($books);
 
+try{
 $p = new Person();
 $p->setId(4);
 $p->load();
 var_dump($p->getBooks());
+}  catch (Exception $e){
+	var_dump($e->getMessage());
+}
