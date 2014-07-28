@@ -94,7 +94,7 @@ class Person extends Hypersistence{
 </pre>
 
 
-<h3>Usage Example:</h3>
+<h3>Load Example:</h3>
 
 <pre>
 
@@ -104,4 +104,29 @@ $p->load();
 
 echo $p->getName();
 
+</pre>
+
+<h3>Save Example:</h3>
+
+<pre>
+
+$p = new Person();
+$p->setName('Mateus Fornari');
+$p->setCity(new City(1, 'San Francisco');
+$p->save();
+
+</pre>
+
+<h3>Search Example:</h3>
+
+<pre>
+
+$p = new Person();
+$p->setName('Mateus');
+
+$search = $p->search();
+$search->orderBy('name', 'asc');
+$search->orderBy('city.name', 'desc');
+
+$list = $search->execute();
 </pre>
