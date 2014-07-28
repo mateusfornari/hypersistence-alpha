@@ -5,7 +5,9 @@
  */
 class Person extends Hypersistence{
 	
-	
+	/**
+	 * @primaryKey 
+	 */
 	protected $id;
 	/**
 	 * @column() 

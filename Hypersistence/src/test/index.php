@@ -47,25 +47,25 @@ require_once './City.php';
 //
 //var_dump($c);
 
-//$b = new Book();
-//$b->setTitle('Bo');
-//$books = $b->search()->orderBy('author.city.name')->orderBy('author.id', 'desc')->execute();
+$b = new Book();
+$b->setTitle('Bo');
+$books = $b->search()->orderBy('title')->orderBy('author.city.name')->execute();
 //$books->orderBy('author.city.name');
 //$books->orderBy('author.id', 'desc');
 //$list = $books->execute();
 
-//foreach ($books as $l){
-//    $name = $l->getAuthor()->load()->getCity()->load()->getName();
-//    echo "{$l->getTitle()} - $name\n";
-//}
+foreach ($books as $l){
+    $name = $l->getAuthor()->load()->getCity()->load()->getName();
+    echo "{$l->getTitle()} - $name\n";
+}
 
 //var_dump($books);
 
-try{
-$p = new Person();
-$p->setId(4);
-$p->load();
-var_dump($p->getBooks());
-}  catch (Exception $e){
-	var_dump($e->getMessage());
-}
+//try{
+//$p = new Person();
+//$p->setId(4);
+//$p->load();
+//var_dump($p->getBooks());
+//}  catch (Exception $e){
+//	var_dump($e->getMessage());
+//}

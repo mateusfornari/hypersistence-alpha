@@ -722,9 +722,11 @@ class HypersistenceResultSet{
         $parts = array_slice($parts, 1);
         
         $p = Hypersistence::getPropertyByVarName($className, $var);
-        
-        $this->joinWith($className, $p, $parts, $orderDirection, $this->chars[$p['i']]);
-		
+        if($p['relType'] == Hypersistence::MANY_TO_ONE){
+			$this->joinWith($className, $p, $parts, $orderDirection, $this->chars[$p['i']]);
+		}else{
+			$this->orderBy[] = $this->chars[$p['i']].'.'.$p['column'].' '.$orderDirection;
+		}
 		return $this;
     }
     
