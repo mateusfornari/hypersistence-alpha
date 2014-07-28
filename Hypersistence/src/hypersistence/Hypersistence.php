@@ -21,6 +21,10 @@ class Hypersistence{
 	private static $TAG_ITEM_CLASS = 'itemClass';
 	private static $TAG_NULLABLE = 'nullable';
 
+	/**
+	 * 
+	 * @return boolean
+	 */
 	public function isLoaded(){
 		return $this->loaded;
 	}
@@ -321,6 +325,10 @@ class Hypersistence{
 		return false;
 	}
 	
+	/**
+	 * 
+	 * @return boolean
+	 */
 	public function save(){
 		
 		$classThis = self::init($this);
@@ -437,11 +445,19 @@ class Hypersistence{
 		return true;
 	}
 	
-	
+	/**
+	 * 
+	 * @return \HypersistenceResultSet
+	 */
 	public function search(){
 		return new HypersistenceResultSet($this);
 	}
 	
+	/**
+	 * 
+	 * @param array $property
+	 * @return \HypersistenceResultSet
+	 */
 	private function searchManyToMany($property){
 		$class = $property['itemClass'];
 		$object = new $class;
@@ -473,6 +489,10 @@ class HypersistenceResultSet{
 		$this->srcObject = $srcObject;
 	}
 	
+	/**
+	 * 
+	 * @return array|Hypersistence
+	 */
 	public function execute(){
 		$this->totalRows = 0;
         $this->totalPages = 0;
@@ -561,7 +581,7 @@ class HypersistenceResultSet{
                 $this->totalRows = $result->total;
                 $this->totalPages = $this->rows > 0 ? ceil($this->totalRows / $this->rows) : 1;
             } else {
-                return false;
+                return array();
             }
         }
         
@@ -634,7 +654,10 @@ class HypersistenceResultSet{
 		
 	}
 	
-    public function fetchAll($orderBy = '')
+	/**
+	 * @return array|Hypersistence
+	 */
+    public function fetchAll()
     {
         $this->rows = 0;
         $this->offset = 0;
@@ -645,6 +668,12 @@ class HypersistenceResultSet{
             return array();
     }
     
+	/**
+	 * 
+	 * @param string $orderBy
+	 * @param string $orderDirection
+	 * @return \HypersistenceResultSet
+	 */
     public function orderBy($orderBy, $orderDirection = 'asc'){
         
         $className = Hypersistence::init($this->object);
@@ -657,18 +686,18 @@ class HypersistenceResultSet{
         
         $p = Hypersistence::getPropertyByVarName($className, $var);
         
-        $this->joinWith($className, $p, $parts, $orderDirection);
-        
+        $this->joinWith($className, $p, $parts, $orderDirection, $this->chars[$p['i']]);
+		
+		return $this;
     }
     
-    private function joinWith($className, $property, $parts, $orderDirection, $alias = ''){
+    private function joinWith($className, $property, $parts, $orderDirection, $classAlias, $alias = ''){
         $auxClass = $property['itemClass'];
         if($alias == ''){
             $alias = $className.'_';
         }
         $var = $parts[0];
         $alias .= $property['var'].'_';
-        $classAlias = $this->chars[$property['i']];
         $parts = array_slice($parts, 1);
         $i = 0;
         while ($auxClass != 'Hypersistence'){
@@ -682,8 +711,9 @@ class HypersistenceResultSet{
             $property = $pk;
             foreach (Hypersistence::$map[$auxClass]['properties'] as $p){
                 if($p['var'] == $var){
+					$p['i'] = $i;
                     if($p['relType'] == Hypersistence::MANY_TO_ONE){
-                        $this->joinWith($auxClass, $p, $parts, $orderDirection, $alias);
+                        $this->joinWith($auxClass, $p, $parts, $orderDirection, $classAlias, $alias);
                     }else{
                         $this->orderBy[] = $alias.$char.'.'.$p['column'].' '.$orderDirection;
                     }
@@ -696,19 +726,37 @@ class HypersistenceResultSet{
         }
     }
     
+	/**
+	 * 
+	 * @param int $rows
+	 * @return \HypersistenceResultSet
+	 */
     public function setRows($rows)
     {
         $this->rows = $rows >= 0 ? $rows : 0;
+		return $this;
     }
 
+	/**
+	 * 
+	 * @param int $offset
+	 * @return \HypersistenceResultSet
+	 */
     public function setOffset($offset)
     {
         $this->offset = $offset >= 0 ? $offset : 0;
+		return $this;
     }
 
+	/**
+	 * 
+	 * @param int $page
+	 * @return \HypersistenceResultSet
+	 */
     public function setPage($page)
     {
         $this->page = $page >= 0 ? $page : 0;
+		return $this;
     }
 
     public function getTotalRows()
@@ -721,6 +769,10 @@ class HypersistenceResultSet{
         return $this->totalPages;
     }
 
+	/**
+	 * 
+	 * @return array|Hypersistence
+	 */
     public function getResultList()
     {
         return $this->resultList;

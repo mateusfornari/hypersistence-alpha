@@ -3,6 +3,7 @@
 require_once '../hypersistence/Hypersistence.php';
 require_once './Person.php';
 require_once './Course.php';
+require_once './City.php';
 
 //$p = new Student();
 //
@@ -46,16 +47,21 @@ require_once './Course.php';
 //
 //var_dump($c);
 
-$b = new Book();
-$b->setTitle('Bo');
-$books = $b->search();
-$books->orderBy('author.name');
-$books->orderBy('author.id', 'desc');
-$list = $books->execute();
+//$b = new Book();
+//$b->setTitle('Bo');
+//$books = $b->search()->orderBy('author.city.name')->orderBy('author.id', 'desc')->execute();
+//$books->orderBy('author.city.name');
+//$books->orderBy('author.id', 'desc');
+//$list = $books->execute();
 
-foreach ($list as $l){
-    $name = $l->getAuthor()->load()->getName();
-    echo "{$l->getTitle()} - $name - {$l->getAuthor()->getId()}\n";
-}
+//foreach ($books as $l){
+//    $name = $l->getAuthor()->load()->getCity()->load()->getName();
+//    echo "{$l->getTitle()} - $name\n";
+//}
 
 //var_dump($books);
+
+$p = new Person();
+$p->setId(4);
+$p->load();
+var_dump($p->getBooks());

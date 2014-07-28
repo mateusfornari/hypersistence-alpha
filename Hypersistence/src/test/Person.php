@@ -19,6 +19,14 @@ class Person extends Hypersistence{
 	protected $email;
 	
 	/**
+	 * @manyToOne(lazy)
+	 * @itemClass(City)
+	 * @column(city_id) 
+	 */
+	protected $city;
+
+
+	/**
 	 * @oneToMany(eager)
 	 * @itemClass(Book)
 	 * @joinColumn(person_id) 
@@ -57,6 +65,14 @@ class Person extends Hypersistence{
 	public function setBooks($books) {
 		$this->books = $books;
 	}
+	public function getCity() {
+		return $this->city;
+	}
+
+	public function setCity($city) {
+		$this->city = $city;
+	}
+
 
 
 }
@@ -112,14 +128,14 @@ class Book extends Hypersistence{
 	
 	/**
 	 * @column(person_id)
-	 * @manyToOne(eager) 
+	 * @manyToOne(lazy) 
 	 * @itemClass(Person)
 	 */
 	private $author;
 	
     /**
 	 * @column(student_id)
-	 * @manyToOne(eager) 
+	 * @manyToOne(lazy) 
 	 * @itemClass(Student)
      * @nullable
 	 */
