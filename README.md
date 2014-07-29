@@ -9,7 +9,7 @@ Use doc comment tags for mapping classes with database.
 
 <h3>Example:</h3>
 
-<pre>
+```php
 
 /**
  * @table(person)
@@ -91,12 +91,12 @@ class Person extends Hypersistence{
     }
 }
 
-</pre>
+```
 
 
 <h3>Load Example:</h3>
 
-<pre>
+```php
 
 $p = new Person();
 $p->setId(1);
@@ -104,11 +104,11 @@ $p->load();
 
 echo $p->getName();
 
-</pre>
+```
 
 <h3>Save Example:</h3>
 
-<pre>
+```php
 
 $p = new Person();
 $p->setName('Mateus Fornari');
@@ -117,11 +117,11 @@ $city->load();
 $p->setCity($city);
 $p->save();
 
-</pre>
+```
 
 <h3>Search Example:</h3>
 
-<pre>
+```php
 
 $p = new Person();
 $p->setName('Mateus');
@@ -131,4 +131,4 @@ $search->orderBy('name', 'asc');
 $search->orderBy('city.name', 'desc');
 
 $list = $search->execute();
-</pre>
+```
