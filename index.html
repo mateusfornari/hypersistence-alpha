@@ -38,7 +38,7 @@
 <h3>
 <a name="example" class="anchor" href="#example"><span class="octicon octicon-link"></span></a>Example:</h3>
 
-<pre>
+```php
 
 /**
  * @table(person)
@@ -120,12 +120,12 @@ class Person extends Hypersistence{
     }
 }
 
-</pre>
+```
 
 <h3>
 <a name="load-example" class="anchor" href="#load-example"><span class="octicon octicon-link"></span></a>Load Example:</h3>
 
-<pre>
+```php
 
 $p = new Person();
 $p-&gt;setId(1);
@@ -133,12 +133,12 @@ $p-&gt;load();
 
 echo $p-&gt;getName();
 
-</pre>
+```
 
 <h3>
 <a name="save-example" class="anchor" href="#save-example"><span class="octicon octicon-link"></span></a>Save Example:</h3>
 
-<pre>
+```php
 
 $p = new Person();
 $p-&gt;setName('Mateus Fornari');
@@ -147,12 +147,12 @@ $city-&gt;load();
 $p-&gt;setCity($city);
 $p-&gt;save();
 
-</pre>
+```
 
 <h3>
 <a name="search-example" class="anchor" href="#search-example"><span class="octicon octicon-link"></span></a>Search Example:</h3>
 
-<pre>
+```php
 
 $p = new Person();
 $p-&gt;setName('Mateus');
@@ -162,7 +162,7 @@ $search-&gt;orderBy('name', 'asc');
 $search-&gt;orderBy('city.name', 'desc');
 
 $list = $search-&gt;execute();
-</pre>
+```
         </section>
 
         <aside id="sidebar">
