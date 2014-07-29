@@ -38,131 +38,127 @@
 <h3>
 <a name="example" class="anchor" href="#example"><span class="octicon octicon-link"></span></a>Example:</h3>
 
-```php
+<div class="highlight highlight-php"><pre>
+<span class="sd">/**</span>
+<span class="sd"> * @table(person)</span>
+<span class="sd"> */</span>
+<span class="k">class</span> <span class="nc">Person</span> <span class="k">extends</span> <span class="nx">Hypersistence</span><span class="p">{</span>
 
-/**
- * @table(person)
- */
-class Person extends Hypersistence{
-    
-    /**
-     * @primaryKey
-     * @column(person_id)
-     */
-    private $id;
-    
-    /**
-     * Use empty column when the column has the same name that var.
-     * @column()
-     */
-    private $name;
-    
-    /**
-     * When you have a Many to One relationship use tags as below.
-     * You can use 'lazy' or 'eager'.
-     * @manyToOne(lazy)
-     * @column(city_id)
-     * @itemClass(City)
-     */
-    private $city;
-    
-    /**
-     * When you have a One to Many relationship use tags as below.
-     * You can use 'lazy' or 'eager'.
-     * @oneToMany(lazy)
-     * @joinColumn(person_id)
-     * @itemClass(Book)
-     */
-    private $books;
-    
-    /**
-     * When you have a Many to Many relationship use tags as below.
-     * You can use 'lazy' or 'eager'.
-     * @manyToMany(lazy)
-     * @joinColumn(person_id)
-     * @inverseJoinColumn(course_id)
-     * @itemClass(Course)
-     * @joinTable(person_has_course)
-     */
-    private $courses;
-    
+    <span class="sd">/**</span>
+<span class="sd">     * @primaryKey</span>
+<span class="sd">     * @column(person_id)</span>
+<span class="sd">     */</span>
+    <span class="k">private</span> <span class="nv">$id</span><span class="p">;</span>
 
-    public function getId(){
-        return $this-&gt;id;
-    }
-    
-    public function setId($id){
-        $this-&gt;id = $id;
-    }
-    
-    public function getName(){
-        return $this-&gt;name;
-    }
-    
-    public function setName($name){
-        $this-&gt;name = $name;
-    }
-    
-    public function getCity(){
-        return $this-&gt;city;
-    }
-    
-    public function setCity($city){
-        $this-&gt;city = $city;
-    }
-    
-    public function getBooks(){
-        return $this-&gt;books;
-    }
-    
-    public function getCourses(){
-        return $this-&gt;courses;
-    }
-}
+    <span class="sd">/**</span>
+<span class="sd">     * Use empty column when the column has the same name that var.</span>
+<span class="sd">     * @column()</span>
+<span class="sd">     */</span>
+    <span class="k">private</span> <span class="nv">$name</span><span class="p">;</span>
 
-```
+    <span class="sd">/**</span>
+<span class="sd">     * When you have a Many to One relationship use tags as below.</span>
+<span class="sd">     * You can use 'lazy' or 'eager'.</span>
+<span class="sd">     * @manyToOne(lazy)</span>
+<span class="sd">     * @column(city_id)</span>
+<span class="sd">     * @itemClass(City)</span>
+<span class="sd">     */</span>
+    <span class="k">private</span> <span class="nv">$city</span><span class="p">;</span>
+
+    <span class="sd">/**</span>
+<span class="sd">     * When you have a One to Many relationship use tags as below.</span>
+<span class="sd">     * You can use 'lazy' or 'eager'.</span>
+<span class="sd">     * @oneToMany(lazy)</span>
+<span class="sd">     * @joinColumn(person_id)</span>
+<span class="sd">     * @itemClass(Book)</span>
+<span class="sd">     */</span>
+    <span class="k">private</span> <span class="nv">$books</span><span class="p">;</span>
+
+    <span class="sd">/**</span>
+<span class="sd">     * When you have a Many to Many relationship use tags as below.</span>
+<span class="sd">     * You can use 'lazy' or 'eager'.</span>
+<span class="sd">     * @manyToMany(lazy)</span>
+<span class="sd">     * @joinColumn(person_id)</span>
+<span class="sd">     * @inverseJoinColumn(course_id)</span>
+<span class="sd">     * @itemClass(Course)</span>
+<span class="sd">     * @joinTable(person_has_course)</span>
+<span class="sd">     */</span>
+    <span class="k">private</span> <span class="nv">$courses</span><span class="p">;</span>
+
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">getId</span><span class="p">(){</span>
+        <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">id</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">setId</span><span class="p">(</span><span class="nv">$id</span><span class="p">){</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">id</span> <span class="o">=</span> <span class="nv">$id</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">getName</span><span class="p">(){</span>
+        <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">name</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">setName</span><span class="p">(</span><span class="nv">$name</span><span class="p">){</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">name</span> <span class="o">=</span> <span class="nv">$name</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">getCity</span><span class="p">(){</span>
+        <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">city</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">setCity</span><span class="p">(</span><span class="nv">$city</span><span class="p">){</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">city</span> <span class="o">=</span> <span class="nv">$city</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">getBooks</span><span class="p">(){</span>
+        <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">books</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">getCourses</span><span class="p">(){</span>
+        <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">courses</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+</pre></div>
 
 <h3>
 <a name="load-example" class="anchor" href="#load-example"><span class="octicon octicon-link"></span></a>Load Example:</h3>
 
-```php
+<div class="highlight highlight-php"><pre>
+<span class="nv">$p</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Person</span><span class="p">();</span>
+<span class="nv">$p</span><span class="o">-&gt;</span><span class="na">setId</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="nv">$p</span><span class="o">-&gt;</span><span class="na">load</span><span class="p">();</span>
 
-$p = new Person();
-$p-&gt;setId(1);
-$p-&gt;load();
+<span class="k">echo</span> <span class="nv">$p</span><span class="o">-&gt;</span><span class="na">getName</span><span class="p">();</span>
 
-echo $p-&gt;getName();
-
-```
+</pre></div>
 
 <h3>
 <a name="save-example" class="anchor" href="#save-example"><span class="octicon octicon-link"></span></a>Save Example:</h3>
 
-```php
+<div class="highlight highlight-php"><pre>
+<span class="nv">$p</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Person</span><span class="p">();</span>
+<span class="nv">$p</span><span class="o">-&gt;</span><span class="na">setName</span><span class="p">(</span><span class="s1">'Mateus Fornari'</span><span class="p">);</span>
+<span class="nv">$city</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">City</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="nv">$city</span><span class="o">-&gt;</span><span class="na">load</span><span class="p">();</span>
+<span class="nv">$p</span><span class="o">-&gt;</span><span class="na">setCity</span><span class="p">(</span><span class="nv">$city</span><span class="p">);</span>
+<span class="nv">$p</span><span class="o">-&gt;</span><span class="na">save</span><span class="p">();</span>
 
-$p = new Person();
-$p-&gt;setName('Mateus Fornari');
-$city = new City(1);
-$city-&gt;load();
-$p-&gt;setCity($city);
-$p-&gt;save();
-
-```
+</pre></div>
 
 <h3>
 <a name="search-example" class="anchor" href="#search-example"><span class="octicon octicon-link"></span></a>Search Example:</h3>
 
-```php
+<div class="highlight highlight-php"><pre>
+<span class="nv">$p</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Person</span><span class="p">();</span>
+<span class="nv">$p</span><span class="o">-&gt;</span><span class="na">setName</span><span class="p">(</span><span class="s1">'Mateus'</span><span class="p">);</span>
 
-$p = new Person();
-$p-&gt;setName('Mateus');
+<span class="nv">$search</span> <span class="o">=</span> <span class="nv">$p</span><span class="o">-&gt;</span><span class="na">search</span><span class="p">();</span>
+<span class="nv">$search</span><span class="o">-&gt;</span><span class="na">orderBy</span><span class="p">(</span><span class="s1">'name'</span><span class="p">,</span> <span class="s1">'asc'</span><span class="p">);</span>
+<span class="nv">$search</span><span class="o">-&gt;</span><span class="na">orderBy</span><span class="p">(</span><span class="s1">'city.name'</span><span class="p">,</span> <span class="s1">'desc'</span><span class="p">);</span>
 
-$search = $p-&gt;search();
-$search-&gt;orderBy('name', 'asc');
-$search-&gt;orderBy('city.name', 'desc');
-
-$list = $search-&gt;execute();
-```
+<span class="nv">$list</span> <span class="o">=</span> <span class="nv">$search</span><span class="o">-&gt;</span><span class="na">execute</span><span class="p">();</span>
+</pre></div>
         </section>
 
         <aside id="sidebar">
