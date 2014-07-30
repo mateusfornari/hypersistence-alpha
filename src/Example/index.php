@@ -1,6 +1,6 @@
 <?php
 
-require_once '../hypersistence/Hypersistence.php';
+require_once '../Hypersistence/Hypersistence.php';
 require_once './Person.php';
 require_once './Book.php';
 require_once './Student.php';
