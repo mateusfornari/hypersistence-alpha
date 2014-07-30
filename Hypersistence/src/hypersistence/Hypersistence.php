@@ -303,6 +303,7 @@ class Hypersistence{
 								}
 							}else if($p['relType'] == self::MANY_TO_MANY){
                                 $search = $this->searchManyToMany($p);
+                                
                                 if($p['loadType'] == 'eager')
                                     $search = $search->execute();
                                 $this->$set($search);
@@ -708,12 +709,13 @@ class HypersistenceResultSet{
 					while ($class != 'Hypersistence'){
 						$alias = $this->chars[$i];
 						foreach (Hypersistence::$map[$class]['properties'] as $p){
-							if($p['relType'] != Hypersistence::MANY_TO_MANY && $p['relType'] != Hypersistence::ONE_TO_MANY){
+                            $var = $p['var'];
+                            $set = 'set'.$var;
+                            $get = 'get'.$var;
+                            if($p['relType'] != Hypersistence::MANY_TO_MANY && $p['relType'] != Hypersistence::ONE_TO_MANY){
 								$column = $alias.'_'.$p['column'];
 								if(isset($result->$column)){
-									$var = $p['var'];
-									$set = 'set'.$var;
-									$get = 'get'.$var;
+									
 									if(isset($objectRefs[$column])){
 										$object->$set($objectRefs[$column]);
 									}else{
@@ -738,7 +740,30 @@ class HypersistenceResultSet{
 										}
 									}
 								}
-							}
+							}else if($p['relType'] == Hypersistence::ONE_TO_MANY){
+								$objClass = $p['itemClass'];
+								Hypersistence::init($objClass);
+								$objFk = Hypersistence::getPropertyByColumn($objClass, $p['joinColumn']);
+								if($objFk){
+									$obj = new $objClass;
+									$objSet = 'set'.$objFk['var'];
+									$obj->$objSet($object);
+									$search = $obj->search();
+									if($p['loadType'] == 'eager'){
+										$search = $search->execute();
+									}
+									$object->$set($search);
+								}
+							}else if($p['relType'] == Hypersistence::MANY_TO_MANY){
+                                $objClass = $p['itemClass'];
+                                
+                                $obj = new $objClass;
+                                $search = new HypersistenceResultSet($obj, $object, $p);
+                                
+                                if($p['loadType'] == 'eager')
+                                    $search = $search->execute();
+                                $object->$set($search);
+                            }
 						}
 
 						$class = Hypersistence::$map[$class]['parent'];
