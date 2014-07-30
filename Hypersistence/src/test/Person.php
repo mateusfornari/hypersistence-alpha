@@ -27,7 +27,7 @@ class Person extends Hypersistence{
 
 
 	/**
-	 * @oneToMany(eager)
+	 * @oneToMany(lazy)
 	 * @itemClass(Book)
 	 * @joinColumn(person_id) 
 	 */

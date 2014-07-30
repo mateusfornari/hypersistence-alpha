@@ -110,3 +110,18 @@ $list = $search->execute();
 foreach ($list as $p){
 	echo $p->getName()."\n";
 }
+
+//Recursive Search
+$c = new City();
+$c->setName('San');
+
+$p = new Person();
+$p->setCity($c);
+
+$b = new Book();
+$b->setAuthor($p);
+
+$list = $b->search()->execute();
+foreach ($list as $b){
+	echo $b->getTitle()."\n";
+}
