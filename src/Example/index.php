@@ -1,6 +1,9 @@
 <?php
 
 require_once '../Hypersistence/Hypersistence.php';
+Hypersistence::registerAutoloader();
+
+
 require_once './Person.php';
 require_once './Book.php';
 require_once './Student.php';
@@ -22,7 +25,6 @@ $s->setName('Mateus Fornari');
 $s->setNumber('123456');
 
 $s->save();
-
 
 
 $course = new Course();
@@ -58,7 +60,7 @@ $p->load();
 
 echo $p->getName()."\n";
 
-$books = $p->getBooks();
+$books = $p->getBooks()->execute();
 
 foreach ($books as $b){
 	echo $b->getTitle()."\n";
@@ -86,7 +88,7 @@ foreach ($courses as $c){
 }
 
 $c = new Course();
-$c->setId(1);
+$c->setId(3);
 $c->load();
 
 echo $c->getDescription()."\n";
