@@ -3,7 +3,7 @@
     "type": "library",
     "description": "PHP Object Oriented persistence framework.",
     "keywords": ["microframework","framework","persistence"],
-    "homepage": "http://github.com/mateusfornari/Hypersistence2.0",
+    "homepage": "http://github.com/mateusfornari/hypersistence2",
     "license": "MIT",
     "authors": [
         {
