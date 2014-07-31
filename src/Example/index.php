@@ -1,6 +1,7 @@
 <?php
 
 require_once '../Hypersistence/Hypersistence.php';
+
 Hypersistence::registerAutoloader();
 
 
