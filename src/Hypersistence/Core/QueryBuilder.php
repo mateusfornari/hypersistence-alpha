@@ -35,11 +35,6 @@ class QueryBuilder{
 		$this->totalRows = 0;
         $this->totalPages = 0;
         $this->resultList = array();
-		
-		$this->joins = array();
-		$this->orderBy = array();
-		$this->filters = array();
-		$this->bounds = array();
         
 		$classThis = Engine::init($this->object);
 		
@@ -252,6 +247,7 @@ class QueryBuilder{
 		}else{
 			$this->orderBy[] = $this->chars[$p['i']].'.'.$p['column'].' '.$orderDirection;
 		}
+        
 		return $this;
     }
     
