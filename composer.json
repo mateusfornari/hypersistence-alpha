@@ -1,9 +1,9 @@
 {
-    "name": "mateusfornari/hypersistence2",
+    "name": "mateusfornari/hypersistence-alpha",
     "type": "library",
     "description": "PHP Object Oriented persistence framework.",
     "keywords": ["microframework","framework","persistence"],
-    "homepage": "http://github.com/mateusfornari/hypersistence2",
+    "homepage": "http://github.com/mateusfornari/hypersistence-alpha",
     "license": "MIT",
     "authors": [
         {
