@@ -36,6 +36,8 @@ class QueryBuilder{
         $this->totalPages = 0;
         $this->resultList = array();
         
+        $this->bounds = array();
+        
 		$classThis = Engine::init($this->object);
 		
 		$tables = array();
@@ -53,9 +55,11 @@ class QueryBuilder{
             $pk = Engine::getPk($class);
             
 			$tables[] = $this->property['joinTable'];
-			$this->filters[] = $this->property['joinTable'].'.'.$this->property['joinColumn'].' = :'.$this->property['joinTable'].'_'.$this->property['joinColumn'];
+            $filter = $this->property['joinTable'].'.'.$this->property['joinColumn'].' = :'.$this->property['joinTable'].'_'.$this->property['joinColumn'];
+			$this->filters[md5($filter)] = $filter;
             $this->bounds[':'.$this->property['joinTable'].'_'.$this->property['joinColumn']] = $srcId;
-            $this->filters[] = $this->property['joinTable'].'.'.$this->property['inverseJoinColumn'].' = '.$this->chars[$pk['i']].'.'.$pk['column'];
+            $filter = $this->property['joinTable'].'.'.$this->property['inverseJoinColumn'].' = '.$this->chars[$pk['i']].'.'.$pk['column'];
+            $this->filters[md5($filter)] = $filter;
 		}
 		
 		
@@ -69,7 +73,8 @@ class QueryBuilder{
                 $parentAlias = $this->chars[$i + 1];
 				$parent = Engine::$map[$class]['parent'];
 				$pk = Engine::getPk(Engine::$map[$parent]['class']);
-				$this->filters[] = $alias.'.'.Engine::$map[$class]['joinColumn'].' = '.$parentAlias.'.'.$pk['column'];
+                $filter = $alias.'.'.Engine::$map[$class]['joinColumn'].' = '.$parentAlias.'.'.$pk['column'];
+				$this->filters[md5($filter)] = $filter;
 			}
 			
 			foreach (Engine::$map[$class]['properties'] as $p){
@@ -83,10 +88,12 @@ class QueryBuilder{
 							$this->joinFilter($class, $p, $value, $alias);
 						}else{
                             if(is_numeric($value)){
-                                $this->filters[] = $alias.'.'.$p['column'].' = :'.$alias.'_'.$p['column'];
+                                $filter = $alias.'.'.$p['column'].' = :'.$alias.'_'.$p['column'];
+                                $this->filters[md5($filter)] = $filter;
                                 $this->bounds[':'.$alias.'_'.$p['column']] = $value;
                             }else{
-                                $this->filters[] = $alias.'.'.$p['column'].' like :'.$alias.'_'.$p['column'];
+                                $filter = $alias.'.'.$p['column'].' like :'.$alias.'_'.$p['column'];
+                                $this->filters[md5($filter)] = $filter;
                                 $this->bounds[':'.$alias.'_'.$p['column']] = '%'.preg_replace('/[ \t]/', '%', trim($value)).'%';
                             }
 						}
@@ -252,7 +259,8 @@ class QueryBuilder{
     }
     
     private function joinOrderBy($className, $property, $parts, $orderDirection, $classAlias, $alias = ''){
-        $auxClass = $property['itemClass'];
+        $auxClass = ltrim($property['itemClass'], '\\');
+        
         if($alias == ''){
             $alias = $className.'_';
         }
@@ -312,10 +320,12 @@ class QueryBuilder{
                         $this->joinFilter($auxClass, $p, $value, $classAlias, $alias);
                     }else if($p['relType'] != Engine::MANY_TO_MANY && $p['relType'] != Engine::ONE_TO_MANY){
 						if(is_numeric($value)){
-							$this->filters[] = $alias.$char.'.'.$p['column'].' = :'.$alias.$char.'_'.$p['column'];
+                            $filter = $alias.$char.'.'.$p['column'].' = :'.$alias.$char.'_'.$p['column'];
+							$this->filters[md5($filter)] = $filter;
 							$this->bounds[':'.$alias.$char.'_'.$p['column']] = $value;
 						}else{
-							$this->filters[] = $alias.$char.'.'.$p['column'].' like :'.$alias.$char.'_'.$p['column'];
+                            $filter = $alias.$char.'.'.$p['column'].' like :'.$alias.$char.'_'.$p['column'];
+							$this->filters[md5($filter)] = $filter;
 							$this->bounds[':'.$alias.$char.'_'.$p['column']] = '%'.preg_replace('/[ \t]/', '%', trim($value)).'%';
 						}
 						if($p['primaryKey']){

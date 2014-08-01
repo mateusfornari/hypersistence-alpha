@@ -407,7 +407,7 @@ class Engine{
 						if($p['relType'] == self::MANY_TO_ONE){
 							$obj = $this->$get();
 							if($obj && $obj instanceof \Hypersistence){
-								$objClass = '\\'.$p[self::$TAG_ITEM_CLASS];
+								$objClass = $p[self::$TAG_ITEM_CLASS];
 								self::init($objClass);
 								$objPk = self::getPk($objClass);
 								$objGet = 'get'.$objPk['var'];
@@ -476,11 +476,9 @@ class Engine{
 							}
 						}
 					}else{
-						var_dump($stmt->errorInfo());
 						return false;
 					}
 				}else{
-					var_dump($stmt->errorInfo());
 					return false;
 				}
 			}
