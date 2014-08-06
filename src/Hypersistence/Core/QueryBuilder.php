@@ -42,6 +42,7 @@ class QueryBuilder{
 		
 		$tables = array();
 		$fields = array();
+		$fieldsNoAlias = array();
 		$objectRefs = array();
 		
 		$class = $classThis;
@@ -78,14 +79,18 @@ class QueryBuilder{
 			}
 			
 			foreach (Engine::$map[$class]['properties'] as $p){
-				if($p['relType'] != Engine::MANY_TO_MANY && $p['relType'] != Engine::ONE_TO_MANY){
-					$fields[] = $alias.'.'.$p['column'].' as '.$alias.'_'.$p['column'];
-                    
+				if($p['relType'] != Engine::MANY_TO_MANY){
+					if($p['relType'] != Engine::ONE_TO_MANY){
+						$fields[] = $alias.'.'.$p['column'].' as '.$alias.'_'.$p['column'];
+						$fieldsNoAlias[] = $alias.'.'.$p['column'];
+					}
 					$get = 'get'.$p['var'];
 					$value = $this->object->$get();
 					if(!is_null($value)){
 						if($value instanceof \Hypersistence){
-							$this->joinFilter($class, $p, $value, $alias);
+							if($p['relType'] == Engine::MANY_TO_ONE || $p['relType'] == Engine::ONE_TO_MANY){
+								$this->joinFilter($class, $p, $value, $alias);
+							}
 						}else{
                             if(is_numeric($value)){
                                 $filter = $alias.'.'.$p['column'].' = :'.$alias.'_'.$p['column'];
@@ -111,7 +116,7 @@ class QueryBuilder{
 		else
 			$where = '';
         
-		$sql = 'select count(*) as total from '. implode(',', $tables).' '.implode(' ', $this->joins).$where;
+		$sql = 'select count(distinct '.implode(',', $fieldsNoAlias).') as total from '. implode(',', $tables).' '.implode(' ', $this->joins).$where;
         
         if ($stmt = DB::getDBConnection()->prepare($sql)) {
             if ($stmt->execute($this->bounds) && $stmt->rowCount() > 0) {
@@ -134,7 +139,7 @@ class QueryBuilder{
         else
             $orderBy = '';
 		
-		$sql = 'select '.implode(',', $fields).' from '. implode(',', $tables).' '.implode(' ', $this->joins).$where.$orderBy. ' LIMIT :limit OFFSET :offset';
+		$sql = 'select distinct '.implode(',', $fields).' from '. implode(',', $tables).' '.implode(' ', $this->joins).$where.$orderBy. ' LIMIT :limit OFFSET :offset';
 		
 		if($stmt = DB::getDBConnection()->prepare($sql)){
 			
@@ -307,7 +312,11 @@ class QueryBuilder{
             $table = Engine::$map[$auxClass]['table'];
             $char = $this->chars[$i];
             $pk = Engine::getPk($auxClass);
-            $join = 'left join '.$table.' '.$alias.$char.' on('.$alias.$char.'.'.$pk['column'].' = '.$classAlias.'.'.$property['column'].')';
+			if($property['relType'] == Engine::MANY_TO_ONE){
+				$join = 'left join '.$table.' '.$alias.$char.' on('.$alias.$char.'.'.$pk['column'].' = '.$classAlias.'.'.$property['column'].')';
+			}else if($property['relType'] == Engine::ONE_TO_MANY){
+				$join = 'left join '.$table.' '.$alias.$char.' on('.$alias.$char.'.'.$property['joinColumn'].' = '.$classAlias.'.'.$pk['column'].')';
+			}
             $this->joins[md5($join)] = $join;
             $classAlias = $alias.$char;
             $property = $pk;
@@ -316,7 +325,7 @@ class QueryBuilder{
 				$value = $object->$get();
                 if(!is_null($value)){
 					$p['i'] = $i;
-                    if($p['relType'] == Engine::MANY_TO_ONE){
+                    if($p['relType'] == Engine::MANY_TO_ONE || $p['relType'] == Engine::ONE_TO_MANY){
                         $this->joinFilter($auxClass, $p, $value, $classAlias, $alias);
                     }else if($p['relType'] != Engine::MANY_TO_MANY && $p['relType'] != Engine::ONE_TO_MANY){
 						if(is_numeric($value)){
@@ -338,6 +347,8 @@ class QueryBuilder{
             $i++;
         }
     }
+	
+	
     
 	/**
 	 * 
