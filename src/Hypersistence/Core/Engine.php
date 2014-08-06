@@ -343,6 +343,7 @@ class Engine{
 		
 		$i = 0;
 		while ($class != '' && $class != 'Hypersistence'){
+            $class = ltrim($class, '\\');
 			$tables[] = self::$map[$class][self::$TAG_TABLE];
 			$table = self::$map[$class][self::$TAG_TABLE];
 			$parent = self::$map[$class]['parent'];
