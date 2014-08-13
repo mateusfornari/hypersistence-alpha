@@ -116,7 +116,7 @@ class QueryBuilder{
 		else
 			$where = '';
         
-		$sql = 'select count(distinct '.implode(',', $fieldsNoAlias).') as total from '. implode(',', $tables).' '.implode(' ', $this->joins).$where;
+		$sql = 'select count(distinct ifnull('.implode(', \'\'),ifnull(', $fieldsNoAlias).', \'\')) as total from '. implode(',', $tables).' '.implode(' ', $this->joins).$where;
         
         if ($stmt = DB::getDBConnection()->prepare($sql)) {
             if ($stmt->execute($this->bounds) && $stmt->rowCount() > 0) {
@@ -124,7 +124,6 @@ class QueryBuilder{
                 $this->totalRows = $result->total;
                 $this->totalPages = $this->rows > 0 ? ceil($this->totalRows / $this->rows) : 1;
             } else {
-                var_dump($stmt->errorInfo());
                 return array();
             }
         }
