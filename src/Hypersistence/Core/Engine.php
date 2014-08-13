@@ -19,6 +19,7 @@ class Engine{
 	private static $TAG_PRIMARY_KEY = 'primaryKey';
 	private static $TAG_ITEM_CLASS = 'itemClass';
 	private static $TAG_NULLABLE = 'nullable';
+	private static $TAG_SEARCH_MODE = 'searchMode';
 
 	/**
 	 * 
@@ -101,7 +102,8 @@ class Engine{
 								self::$TAG_ITEM_CLASS => $itemClass,
 								self::$TAG_JOIN_TABLE => $joinTable,
 								self::$TAG_INVERSE_JOIN_COLUMN => $inverseJoinColumn,
-                                self::$TAG_NULLABLE => self::is($p, self::$TAG_NULLABLE)
+                                self::$TAG_NULLABLE => self::is($p, self::$TAG_NULLABLE),
+                                self::$TAG_SEARCH_MODE => self::getAnnotationValue($p, self::$TAG_SEARCH_MODE)
 							);
 						}
 					}
@@ -118,7 +120,7 @@ class Engine{
 	 */
 	private static function getAnnotationValue($reflection, $annotation){
 		$refComments = $reflection->getDocComment();
-		if(preg_match('/@'.$annotation.'[ \t]*\([ \t]*([a-zA-Z_0-9]+)?[ \t]*\)/', $refComments, $matches)){
+		if(preg_match('/@'.$annotation.'[ \t]*\([ \t]*([a-zA-Z_0-9%]+)?[ \t]*\)/', $refComments, $matches)){
 			if(isset($matches[1])){
 				return trim($matches[1]);
 			}

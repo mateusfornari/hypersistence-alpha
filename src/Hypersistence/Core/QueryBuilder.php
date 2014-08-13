@@ -99,7 +99,7 @@ class QueryBuilder{
                             }else{
                                 $filter = $alias.'.'.$p['column'].' like :'.$alias.'_'.$p['column'];
                                 $this->filters[md5($filter)] = $filter;
-                                $this->bounds[':'.$alias.'_'.$p['column']] = '%'.preg_replace('/[ \t]/', '%', trim($value)).'%';
+                                $this->bounds[':'.$alias.'_'.$p['column']] = $this->searchMode($p, $value);
                             }
 						}
 					}
@@ -124,6 +124,7 @@ class QueryBuilder{
                 $this->totalRows = $result->total;
                 $this->totalPages = $this->rows > 0 ? ceil($this->totalRows / $this->rows) : 1;
             } else {
+                var_dump($stmt->errorInfo());
                 return array();
             }
         }
@@ -348,7 +349,26 @@ class QueryBuilder{
         }
     }
 	
-	
+	private function searchMode($property, $value){
+        $mode = $property['searchMode'];
+        if(preg_match('/^%[a-zA-Z]$/', $mode)){
+            return "%$value";
+        }elseif(preg_match('/^%[a-zA-Z]%$/', $mode)){
+            return "%$value%";
+        }elseif(preg_match('/^[a-zA-Z]%$/', $mode)){
+            return "$value%";
+        }elseif(preg_match('/^[a-zA-Z]%[a-zA-Z]$/', $mode)){
+            return preg_replace("/[ \t\n\r]/", '%', $value);
+        }elseif(preg_match('/^%[a-zA-Z]%[a-zA-Z]$/', $mode)){
+            return '%'.preg_replace("/[ \t\n\r]/", '%', $value);
+        }elseif(is_null($mode) || preg_match('/^%[a-zA-Z]%[a-zA-Z]%$/', $mode)){
+            return '%'.preg_replace("/[ \t\n\r]/", '%', $value).'%';
+        }elseif(preg_match('/^[a-zA-Z]%[a-zA-Z]%$/', $mode)){
+            return preg_replace("/[ \t\n\r]/", '%', $value).'%';
+        }else if($mode === ''){
+            return $value;
+        }
+    }
     
 	/**
 	 * 
