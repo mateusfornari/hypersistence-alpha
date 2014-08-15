@@ -305,9 +305,11 @@ class QueryBuilder{
             $alias = $className.'_';
         }
         $alias .= $property['var'].'_';
+        $last = null;
         $i = 0;
         while ($auxClass != 'Hypersistence'){
             Engine::init($auxClass);
+            
 			$auxClass = ltrim($auxClass, '\\');
             $table = Engine::$map[$auxClass]['table'];
             $char = $this->chars[$i];
@@ -316,14 +318,20 @@ class QueryBuilder{
 				$join = 'left join '.$table.' '.$alias.$char.' on('.$alias.$char.'.'.$pk['column'].' = '.$classAlias.'.'.$property['column'].')';
 			}else if($property['relType'] == Engine::ONE_TO_MANY){
 				$join = 'left join '.$table.' '.$alias.$char.' on('.$alias.$char.'.'.$property['joinColumn'].' = '.$classAlias.'.'.$pk['column'].')';
-			}
+			}else if($property['relType'] == 0){
+                $join = 'left join '.$table.' '.$alias.$char.' on('.$alias.$char.'.'.$pk['column'].' = '.$classAlias.'.'.$last['joinColumn'].')';
+            }
+            
             $this->joins[md5($join)] = $join;
             $classAlias = $alias.$char;
+            
             $property = $pk;
+            $last = Engine::$map[$auxClass];
             foreach (Engine::$map[$auxClass]['properties'] as $p){
+                
 				$get = 'get'.$p['var'];
 				$value = $object->$get();
-                if(!is_null($value)){
+                if(!is_null($value) && !$value instanceof QueryBuilder){
 					$p['i'] = $i;
                     if($p['relType'] == Engine::MANY_TO_ONE || $p['relType'] == Engine::ONE_TO_MANY){
                         $this->joinFilter($auxClass, $p, $value, $classAlias, $alias);
