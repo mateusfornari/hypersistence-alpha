@@ -369,6 +369,53 @@ class Engine{
 	}
 	
 	/**
+	 * @return boolean
+	 */
+	public function exists(){
+		
+		$classThis = self::init($this);
+		
+		$tables = array();
+		$joins = array();
+		$bounds = array();
+		
+		$class = $classThis;
+		
+		if($pk = self::getPk($class)){
+			$get = 'get'.$pk['var'];
+			$joins[] = $pk[self::$TAG_TABLE].'.'.$pk[self::$TAG_COLUMN].' = '.':'.$pk[self::$TAG_TABLE].'_'.$pk[self::$TAG_COLUMN];
+			$bounds[':'.$pk[self::$TAG_TABLE].'_'.$pk[self::$TAG_COLUMN]] = $this->$get();
+		}
+		
+		$i = 0;
+		while ($class != '' && $class != 'Hypersistence'){
+            $class = ltrim($class, '\\');
+			$tables[] = self::$map[$class][self::$TAG_TABLE];
+			$table = self::$map[$class][self::$TAG_TABLE];
+			$parent = self::$map[$class]['parent'];
+			if($parent != 'Hypersistence'){
+				$pk = self::getPk(self::$map[$parent]['class']);
+				$joins[] = $table.'.'.self::$map[$class][self::$TAG_JOIN_COLUMN].' = '.self::$map[$parent][self::$TAG_TABLE].'.'.$pk[self::$TAG_COLUMN];
+			}
+			
+			$class = self::$map[$class]['parent'];
+			$i++;
+		}
+		
+		$sql = 'select count(*) as total from '.implode(',', $tables).' where '.  implode(' and ', $joins);
+		
+		if($stmt = DB::getDBConnection()->prepare($sql)){
+			if ($stmt->execute($bounds)) {
+				$res = $stmt->fetchObject();
+				if($res->total > 0){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	/**
 	 * 
 	 * @return boolean
 	 */
@@ -384,7 +431,7 @@ class Engine{
 		$get = 'get'.$pk['var'];
 		$id = $this->$get();
 		
-		$new = is_null($id);
+		$new = is_null($id) || !$this->exists();
 		
 		while ($class != '' && $class != 'Hypersistence'){
 			$class = ltrim($class, '\\');
@@ -439,7 +486,7 @@ class Engine{
 				}
 				
 				foreach ($properties as $p){
-					if($p['column'] != $pk['column'] && $p['relType'] != self::MANY_TO_MANY && $p['relType'] != self::ONE_TO_MANY){
+					if($p['relType'] != self::MANY_TO_MANY && $p['relType'] != self::ONE_TO_MANY){
 						$get = 'get'.$p['var'];
 						$fields[] = $p[self::$TAG_COLUMN];
 						$values[] = ':'.$p[self::$TAG_COLUMN];
