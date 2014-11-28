@@ -179,7 +179,15 @@ class QueryBuilder{
 													}
 												}
 											}else{
-												$object->$set($result->$column);
+												if($p['dateTime']){
+													if(!is_null($result->$column)){
+														$object->$set(new DateTime($result->$column));
+													}else{
+														$object->$set(null);
+													}
+												}else{
+													$object->$set($result->$column);
+												}
 											}
 										}
 									}

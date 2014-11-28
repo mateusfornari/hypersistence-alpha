@@ -20,6 +20,7 @@ class Engine{
 	private static $TAG_ITEM_CLASS = 'itemClass';
 	private static $TAG_NULLABLE = 'nullable';
 	private static $TAG_SEARCH_MODE = 'searchMode';
+	private static $TAG_DATETIME = 'dateTime';
 
 	/**
 	 * 
@@ -103,7 +104,8 @@ class Engine{
 								self::$TAG_JOIN_TABLE => $joinTable,
 								self::$TAG_INVERSE_JOIN_COLUMN => $inverseJoinColumn,
                                 self::$TAG_NULLABLE => self::is($p, self::$TAG_NULLABLE),
-                                self::$TAG_SEARCH_MODE => self::getAnnotationValue($p, self::$TAG_SEARCH_MODE)
+                                self::$TAG_SEARCH_MODE => self::getAnnotationValue($p, self::$TAG_SEARCH_MODE),
+								self::$TAG_DATETIME => self::is($p, self::$TAG_DATETIME)
 							);
 						}
 					}
@@ -284,7 +286,15 @@ class Engine{
 											}
 										}
 									}else{
-										$this->$set($result->$column);
+										if($p[self::$TAG_DATETIME]){
+											if(!is_null($result->$column)){
+												$this->$set(new DateTime($result->$column));
+											}else{
+												$this->$set(null);
+											}
+										}else{
+											$this->$set($result->$column);
+										}
 									}
 								}
 							}
@@ -539,7 +549,7 @@ class Engine{
 	
 	/**
 	 * 
-	 * @return \HypersistenceResultSet
+	 * @return QueryBuilder
 	 */
 	public function search(){
 		return new QueryBuilder($this);
@@ -548,7 +558,7 @@ class Engine{
 	/**
 	 * 
 	 * @param array $property
-	 * @return \HypersistenceResultSet
+	 * @return QueryBuilder
 	 */
 	private function searchManyToMany($property){
 		$class = $property['itemClass'];
