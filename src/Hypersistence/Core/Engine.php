@@ -7,6 +7,8 @@ class Engine{
 	
 	private $loaded = false;
 	
+	private $sqlErrorInfo = array();
+
 	const MANY_TO_ONE = 1;
 	const ONE_TO_MANY = 2;
 	const MANY_TO_MANY = 3;
@@ -328,8 +330,12 @@ class Engine{
 					$class = self::$map[$class]['parent'];
 					$i++;
 				}
+			}else{
+				$this->sqlErrorInfo[] = $stmt->errorInfo();
 			}
 			
+		}else{
+			$this->sqlErrorInfo[] = DB::getDBConnection()->errorInfo();
 		}
 		return $this;
 	}
@@ -373,8 +379,11 @@ class Engine{
 		if($stmt = DB::getDBConnection()->prepare($sql)){
 			if ($stmt->execute($bounds)) {
 				return true;
+			}else{
+				$this->sqlErrorInfo[] = $stmt->errorInfo();
 			}
 		}
+		$this->sqlErrorInfo[] = DB::getDBConnection()->errorInfo();
 		return false;
 	}
 	
@@ -420,8 +429,11 @@ class Engine{
 				if($res->total > 0){
 					return true;
 				}
+			}else{
+				$this->sqlErrorInfo[] = $stmt->errorInfo();
 			}
 		}
+		$this->sqlErrorInfo[] = DB::getDBConnection()->errorInfo();
 		return false;
 	}
 	
@@ -536,9 +548,11 @@ class Engine{
 							}
 						}
 					}else{
+						$this->sqlErrorInfo[] = $stmt->errorInfo();
 						return false;
 					}
 				}else{
+					$this->sqlErrorInfo[] = DB::getDBConnection()->errorInfo();
 					return false;
 				}
 			}
@@ -624,6 +638,10 @@ class Engine{
 	
 	public static function rollback(){
 		return DB::getDBConnection()->rollBack();
+	}
+	
+	public function sqlErrorInfo(){
+		return $this->sqlErrorInfo;
 	}
 	
 }

@@ -25,9 +25,9 @@ $s->setEmail('test@hypersistence.com');
 $s->setName('Mateus Fornari');
 $s->setNumber('123456');
 
-$s->save();
+var_dump($s->save());
 
-
+exit();
 $course = new Course();
 $course->setDescription('PHP Programming');
 
