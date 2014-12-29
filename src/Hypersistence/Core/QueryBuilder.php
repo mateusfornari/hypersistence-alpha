@@ -32,11 +32,10 @@ class QueryBuilder{
 	 * @return array|Hypersistence
 	 */
 	public function execute(){
-		$this->totalRows = 0;
+        $this->totalRows = 0;
         $this->totalPages = 0;
         $this->resultList = array();
         
-        $this->bounds = array();
         
 		$classThis = Engine::init($this->object);
 		
@@ -227,6 +226,7 @@ class QueryBuilder{
 			}
 			
 		}
+    
 		return $this->resultList;
 		
 	}
@@ -270,6 +270,34 @@ class QueryBuilder{
         
 		return $this;
     }
+	/**
+	 * 
+	 * @param string $property
+	 * @param string $value
+     * @param string $opperation
+	 * @return \HypersistenceResultSet
+	 */
+    public function filter($property, $value, $opperation = '='){
+        
+        $className = Engine::init($this->object);
+        
+        $property = preg_replace('/[ \t]/', '', $property);
+        $parts = explode('.', $property);
+        
+        $var = $parts[0];
+        $parts = array_slice($parts, 1);
+        $className = ltrim($className, '\\');
+        $p = Engine::getPropertyByVarName($className, $var);
+        if($p['relType'] == Engine::MANY_TO_ONE){
+			$this->joinPersonalFilter($className, $p, $parts, $opperation, $value, $this->chars[$p['i']]);
+		}else{
+            $filter = $this->chars[$p['i']].'.'.$p['column'].' '.$opperation.' :'.$this->chars[$p['i']].'_'.$p['column'];
+			$this->filters[md5($filter)] = $filter;
+            $this->bounds[':'.$this->chars[$p['i']].'_'.$p['column']] = $value;
+		}
+        
+		return $this;
+    }
     
     private function joinOrderBy($className, $property, $parts, $orderDirection, $classAlias, $alias = ''){
         $auxClass = ltrim($property['itemClass'], '\\');
@@ -297,6 +325,44 @@ class QueryBuilder{
                         $this->joinOrderBy($auxClass, $p, $parts, $orderDirection, $classAlias, $alias);
                     }else{
                         $this->orderBy[] = $alias.$char.'.'.$p['column'].' '.$orderDirection;
+                    }
+                    break 2;
+                    
+                }
+            }
+            $auxClass = Engine::$map[$auxClass]['parent'];
+            $i++;
+        }
+    }
+    
+    private function joinPersonalFilter($className, $property, $parts, $opperation, $value, $classAlias, $alias = ''){
+        $auxClass = ltrim($property['itemClass'], '\\');
+        
+        if($alias == ''){
+            $alias = $className.'_';
+        }
+        $var = $parts[0];
+        $alias .= $property['var'].'_';
+        $parts = array_slice($parts, 1);
+        $i = 0;
+        while ($auxClass != 'Hypersistence'){
+            Engine::init($auxClass);
+            $table = Engine::$map[$auxClass]['table'];
+            $char = $this->chars[$i];
+            $pk = Engine::getPk($auxClass);
+            $join = 'left join '.$table.' '.$alias.$char.' on('.$alias.$char.'.'.$pk['column'].' = '.$classAlias.'.'.$property['column'].')';
+            $this->joins[md5($join)] = $join;
+            $classAlias = $alias.$char;
+            $property = $pk;
+            foreach (Engine::$map[$auxClass]['properties'] as $p){
+                if($p['var'] == $var){
+					$p['i'] = $i;
+                    if($p['relType'] == Engine::MANY_TO_ONE){
+                        $this->joinPersonalFilter($auxClass, $p, $parts, $classAlias, $alias);
+                    }else{
+                        $filter = $alias.$char.'.'.$p['column'].' '.$opperation.' :'.$alias.$char.'_'.$p['column'];
+                        $this->filters[md5($filter)] = $filter;
+                        $this->bounds[':'.$alias.$char.'_'.$p['column']] = $value;
                     }
                     break 2;
                     

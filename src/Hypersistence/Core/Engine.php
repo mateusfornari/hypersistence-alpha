@@ -3,7 +3,7 @@ namespace Hypersistence\Core;
 
 class Engine{
 	
-	const VERSION = '0.2.47';
+	const VERSION = '0.2.48';
 	
 	public static $map;
 	

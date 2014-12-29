@@ -11,6 +11,7 @@ require_once './Student.php';
 require_once './Course.php';
 require_once './City.php';
 
+
 //SAVE
 $c = new City();
 $c->setName('San Francisco');
@@ -27,7 +28,7 @@ $s->setNumber('123456');
 
 var_dump($s->save());
 
-exit();
+
 $course = new Course();
 $course->setDescription('PHP Programming');
 
@@ -56,7 +57,7 @@ Hypersistence::commit();
 
 //LOAD
 $p = new Person();
-$p->setId(2);
+$p->setId(1);
 $p->load();
 
 echo $p->getName()."\n";
@@ -89,7 +90,7 @@ foreach ($courses as $c){
 }
 
 $c = new Course();
-$c->setId(3);
+$c->setId(1);
 $c->load();
 
 echo $c->getDescription()."\n";
