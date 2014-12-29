@@ -116,9 +116,14 @@ class QueryBuilder{
 			$where = '';
         
 		$sql = 'select count(distinct ifnull('.implode(', \'\'),ifnull(', $fieldsNoAlias).', \'\')) as total from '. implode(',', $tables).' '.implode(' ', $this->joins).$where;
-        
+        $bounds = array();
+        foreach ($this->bounds as $key => $val){
+            if($key != ':offset' && $key != ':limit'){
+                $bounds[$key] = $val;
+            }
+        }
         if ($stmt = DB::getDBConnection()->prepare($sql)) {
-            if ($stmt->execute($this->bounds) && $stmt->rowCount() > 0) {
+            if ($stmt->execute($bounds) && $stmt->rowCount() > 0) {
                 $result = $stmt->fetchObject();
                 $this->totalRows = $result->total;
                 $this->totalPages = $this->rows > 0 ? ceil($this->totalRows / $this->rows) : 1;
