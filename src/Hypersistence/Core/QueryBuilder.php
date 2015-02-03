@@ -144,7 +144,8 @@ class QueryBuilder{
             $orderBy = '';
 		
 		$sql = 'select distinct '.implode(',', $fields).' from '. implode(',', $tables).' '.implode(' ', $this->joins).$where.$orderBy. ' LIMIT :limit OFFSET :offset';
-		
+		var_dump($sql);
+		var_dump($this->bounds);
 		if($stmt = DB::getDBConnection()->prepare($sql)){
 			
 			if ($stmt->execute($this->bounds) && $stmt->rowCount() > 0) {
@@ -296,9 +297,13 @@ class QueryBuilder{
         if($p['relType'] == Engine::MANY_TO_ONE){
 			$this->joinPersonalFilter($className, $p, $parts, $opperation, $value, $this->chars[$p['i']]);
 		}else{
-            $filter = $this->chars[$p['i']].'.'.$p['column'].' '.$opperation.' :'.$this->chars[$p['i']].'_'.$p['column'];
+			$i = 0;
+			$key = ':'.$this->chars[$p['i']].'_'.$p['column'];
+			while(isset($this->bounds[$key.$i]))
+				$i++;
+            $filter = $this->chars[$p['i']].'.'.$p['column'].' '.$opperation.' '.$key.$i;
 			$this->filters[md5($filter)] = $filter;
-            $this->bounds[':'.$this->chars[$p['i']].'_'.$p['column']] = $value;
+            $this->bounds[$key.$i] = $value;
 		}
         
 		return $this;
