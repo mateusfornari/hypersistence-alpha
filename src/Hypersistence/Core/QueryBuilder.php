@@ -115,7 +115,13 @@ class QueryBuilder{
 		else
 			$where = '';
         
-		$sql = 'select count(distinct ifnull('.implode(', \'\'),ifnull(', $fieldsNoAlias).', \'\')) as total from '. implode(',', $tables).' '.implode(' ', $this->joins).$where;
+		if(count($this->joins) > 0){
+			$count = 'distinct ifnull('.implode(', \'\'),ifnull(', $fieldsNoAlias).', \'\')';
+		}else{
+			$count = '*';
+		}
+		$sql = 'select count('.$count.') as total from '. implode(',', $tables).' '.implode(' ', $this->joins).$where;
+		
         $bounds = array();
         foreach ($this->bounds as $key => $val){
             if($key != ':offset' && $key != ':limit'){
@@ -144,8 +150,7 @@ class QueryBuilder{
             $orderBy = '';
 		
 		$sql = 'select distinct '.implode(',', $fields).' from '. implode(',', $tables).' '.implode(' ', $this->joins).$where.$orderBy. ' LIMIT :limit OFFSET :offset';
-		var_dump($sql);
-		var_dump($this->bounds);
+		
 		if($stmt = DB::getDBConnection()->prepare($sql)){
 			
 			if ($stmt->execute($this->bounds) && $stmt->rowCount() > 0) {
