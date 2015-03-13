@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dbconf>
 	<dbms>mysql</dbms>
-	<host>localhost</host>
+	<host>192.168.1.29</host>
 	<username>root</username>
 	<password>root</password>
 	<database>test</database>

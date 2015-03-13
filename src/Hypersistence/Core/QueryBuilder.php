@@ -151,6 +151,7 @@ class QueryBuilder{
 		
 		$sql = 'select distinct '.implode(',', $fields).' from '. implode(',', $tables).' '.implode(' ', $this->joins).$where.$orderBy. ' LIMIT :limit OFFSET :offset';
 		
+		
 		if($stmt = DB::getDBConnection()->prepare($sql)){
 			
 			if ($stmt->execute($this->bounds) && $stmt->rowCount() > 0) {
@@ -375,9 +376,13 @@ class QueryBuilder{
                     if($p['relType'] == Engine::MANY_TO_ONE){
                         $this->joinPersonalFilter($auxClass, $p, $parts, $classAlias, $alias);
                     }else{
-                        $filter = $alias.$char.'.'.$p['column'].' '.$opperation.' :'.$alias.$char.'_'.$p['column'];
+						$i = 0;
+						$key = ':'.$alias.$char.'_'.$p['column'];
+						while(isset($this->bounds[$key.$i]))
+							$i++;
+                        $filter = $alias.$char.'.'.$p['column'].' '.$opperation.' '.$key.$i;
                         $this->filters[md5($filter)] = $filter;
-                        $this->bounds[':'.$alias.$char.'_'.$p['column']] = $value;
+                        $this->bounds[$key.$i] = $value;
                     }
                     break 2;
                     

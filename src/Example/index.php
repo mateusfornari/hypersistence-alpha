@@ -12,7 +12,6 @@ require_once './Course.php';
 require_once './City.php';
 
 
-
 //SAVE
 $c = new City();
 $c->setName('San Francisco');
