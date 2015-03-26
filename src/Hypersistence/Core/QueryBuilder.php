@@ -67,19 +67,21 @@ class QueryBuilder{
 		while ($class != 'Hypersistence'){
 			$alias = $this->chars[$i];
 			$class = ltrim($class, '\\');
-			$tables[] = Engine::$map[$class]['table'].' '.$alias;
-			
-			if(Engine::$map[$class]['parent'] != 'Hypersistence'){
-                $parentAlias = $this->chars[$i + 1];
-				$parent = Engine::$map[$class]['parent'];
-				$pk = Engine::getPk(Engine::$map[$parent]['class']);
-                $filter = $alias.'.'.Engine::$map[$class]['joinColumn'].' = '.$parentAlias.'.'.$pk['column'];
-				$this->filters[md5($filter)] = $filter;
+			$joinTable = Engine::$map[$class]['table'].' '.$alias;
+			if($i == 0){
+				$tables[] = $joinTable;
+			}else{
+				$parentAlias = $this->chars[$i];
+				$pk = Engine::getPk($class);
+				$join = 'join '.$joinTable.' on('.$lastAlias.'.'.Engine::$map[$lastClass]['joinColumn'].' = '.$parentAlias.'.'.$pk['column'].')';
+				$this->joins[md5($join)] = $join;
 			}
+			$lastClass = $class;
+			$lastAlias = $alias;
 			
 			foreach (Engine::$map[$class]['properties'] as $p){
-				if($p['relType'] != Engine::MANY_TO_MANY){
-					if($p['relType'] != Engine::ONE_TO_MANY){
+				//if($p['relType'] != Engine::MANY_TO_MANY){
+					if($p['relType'] != Engine::ONE_TO_MANY && $p['relType'] != Engine::MANY_TO_MANY){
 						$fields[] = $alias.'.'.$p['column'].' as '.$alias.'_'.$p['column'];
 						$fieldsNoAlias[] = $alias.'.'.$p['column'];
 					}
@@ -87,7 +89,7 @@ class QueryBuilder{
 					$value = $this->object->$get();
 					if(!is_null($value)){
 						if($value instanceof \Hypersistence){
-							if($p['relType'] == Engine::MANY_TO_ONE || $p['relType'] == Engine::ONE_TO_MANY){
+							if($p['relType'] == Engine::MANY_TO_ONE || $p['relType'] == Engine::ONE_TO_MANY || $p['relType'] == Engine::MANY_TO_MANY){
 								$this->joinFilter($class, $p, $value, $alias);
 							}
 						}else{
@@ -103,7 +105,7 @@ class QueryBuilder{
 						}
 					}
 					
-				}
+				//}
 			}
 			
 			$class = Engine::$map[$class]['parent'];
@@ -412,6 +414,11 @@ class QueryBuilder{
 				$join = 'left join '.$table.' '.$alias.$char.' on('.$alias.$char.'.'.$pk['column'].' = '.$classAlias.'.'.$property['column'].')';
 			}else if($property['relType'] == Engine::ONE_TO_MANY){
 				$join = 'left join '.$table.' '.$alias.$char.' on('.$alias.$char.'.'.$property['joinColumn'].' = '.$classAlias.'.'.$pk['column'].')';
+			}else if($property['relType'] == Engine::MANY_TO_MANY){
+				$joinTable = $property['joinTable'];
+				$joinPk = Engine::getPk($property['itemClass']);
+				$join = 'left join '.$joinTable.' '.$alias.$char.'_j'.' on('.$alias.$char.'_j'.'.'.$property['joinColumn'].' = '.$classAlias.'.'.$pk['column'].')'
+						. ' left join '.$table.' '.$alias.$char.' on('.$alias.$char.'.'.$joinPk['column'].' = '.$alias.$char.'_j'.'.'.$property['inverseJoinColumn'].')';
 			}else if($property['relType'] == 0){
                 $join = 'left join '.$table.' '.$alias.$char.' on('.$alias.$char.'.'.$pk['column'].' = '.$classAlias.'.'.$last['joinColumn'].')';
             }
