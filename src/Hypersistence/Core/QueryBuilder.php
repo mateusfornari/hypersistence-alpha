@@ -153,7 +153,6 @@ class QueryBuilder{
 		
 		$sql = 'select distinct '.implode(',', $fields).' from '. implode(',', $tables).' '.implode(' ', $this->joins).$where.$orderBy. ' LIMIT :limit OFFSET :offset';
 		
-		
 		if($stmt = DB::getDBConnection()->prepare($sql)){
 			
 			if ($stmt->execute($this->bounds) && $stmt->rowCount() > 0) {
@@ -296,27 +295,42 @@ class QueryBuilder{
         $className = Engine::init($this->object);
         
         $property = preg_replace('/[ \t]/', '', $property);
+        $opperation = preg_replace('/[^=><isISlkeLKEnotNOT ]/', '', $opperation);
         $parts = explode('.', $property);
         
         $var = $parts[0];
         $parts = array_slice($parts, 1);
         $className = ltrim($className, '\\');
         $p = Engine::getPropertyByVarName($className, $var);
-        if($p['relType'] == Engine::MANY_TO_ONE){
-			$this->joinPersonalFilter($className, $p, $parts, $opperation, $value, $this->chars[$p['i']]);
-		}else{
-			$i = 0;
-			$key = ':'.$this->chars[$p['i']].'_'.$p['column'];
-			while(isset($this->bounds[$key.$i]))
-				$i++;
-            $filter = $this->chars[$p['i']].'.'.$p['column'].' '.$opperation.' '.$key.$i;
-			$this->filters[md5($filter)] = $filter;
-            $this->bounds[$key.$i] = $value;
-		}
-        
-		return $this;
+        if ($p['relType'] == Engine::MANY_TO_ONE) {
+            if((strtolower($opperation) == 'is' || strtolower($opperation) == 'is not') && (strtolower($value) == 'null' || is_null($value))){
+                $i = 0;
+                $key = ':' . $this->chars[$p['i']] . '_' . $p['column'];
+                while (isset($this->bounds[$key . $i]))
+                    $i++;
+                $filter = $this->chars[$p['i']] . '.' . $p['column'] . ' '.$opperation.' null';
+                $this->filters[md5($filter)] = $filter;
+                return $this;
+            }
+            $this->joinPersonalFilter($className, $p, $parts, $opperation, $value, $this->chars[$p['i']]);
+        } else {
+            $i = 0;
+            $key = ':' . $this->chars[$p['i']] . '_' . $p['column'];
+            while (isset($this->bounds[$key . $i]))
+                $i++;
+            if((strtolower($opperation) == 'is' || strtolower($opperation) == 'is not') && (strtolower($value) == 'null' || is_null($value))){
+                $filter = $this->chars[$p['i']] . '.' . $p['column'] . ' '.$opperation.' null';
+                $this->filters[md5($filter)] = $filter;
+                return $this;
+            }
+            $filter = $this->chars[$p['i']] . '.' . $p['column'] . ' ' . $opperation . ' ' . $key . $i;
+            $this->filters[md5($filter)] = $filter;
+            $this->bounds[$key . $i] = $value;
+        }
+
+        return $this;
     }
-    
+
     private function joinOrderBy($className, $property, $parts, $orderDirection, $classAlias, $alias = ''){
         $auxClass = ltrim($property['itemClass'], '\\');
         
