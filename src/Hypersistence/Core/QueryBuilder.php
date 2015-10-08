@@ -295,7 +295,7 @@ class QueryBuilder{
         $className = Engine::init($this->object);
         
         $property = preg_replace('/[ \t]/', '', $property);
-        $opperation = preg_replace('/[^=><isISlkeLKEnotNOT ]/', '', $opperation);
+        $opperation = preg_replace('/[^!=><isISlkeLKEnotNOT ]/', '', $opperation);
         $parts = explode('.', $property);
         
         $var = $parts[0];
