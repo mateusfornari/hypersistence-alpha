@@ -54,7 +54,7 @@ class QueryBuilder{
             $srcId = $this->srcObject->$srcGet();
             $pk = Engine::getPk($class);
             
-			$tables[] = $this->property['joinTable'];
+			$tables[] = '`'.$this->property['joinTable'].'`';
             $filter = $this->property['joinTable'].'.'.$this->property['joinColumn'].' = :'.$this->property['joinTable'].'_'.$this->property['joinColumn'];
 			$this->filters[md5($filter)] = $filter;
             $this->bounds[':'.$this->property['joinTable'].'_'.$this->property['joinColumn']] = $srcId;
@@ -67,7 +67,7 @@ class QueryBuilder{
 		while ($class != 'Hypersistence'){
 			$alias = $this->chars[$i];
 			$class = ltrim($class, '\\');
-			$joinTable = Engine::$map[$class]['table'].' '.$alias;
+			$joinTable = '`'.Engine::$map[$class]['table'].'` '.$alias;
 			if($i == 0){
 				$tables[] = $joinTable;
 			}else{
@@ -343,7 +343,7 @@ class QueryBuilder{
         $i = 0;
         while ($auxClass != 'Hypersistence'){
             Engine::init($auxClass);
-            $table = Engine::$map[$auxClass]['table'];
+            $table = '`'.Engine::$map[$auxClass]['table'].'`';
             $char = $this->chars[$i];
             $pk = Engine::getPk($auxClass);
             $join = 'left join '.$table.' '.$alias.$char.' on('.$alias.$char.'.'.$pk['column'].' = '.$classAlias.'.'.$property['column'].')';
@@ -379,7 +379,7 @@ class QueryBuilder{
         $i = 0;
         while ($auxClass != 'Hypersistence'){
             Engine::init($auxClass);
-            $table = Engine::$map[$auxClass]['table'];
+            $table = '`'.Engine::$map[$auxClass]['table'].'`';
             $char = $this->chars[$i];
             $pk = Engine::getPk($auxClass);
             $join = 'left join '.$table.' '.$alias.$char.' on('.$alias.$char.'.'.$pk['column'].' = '.$classAlias.'.'.$property['column'].')';
@@ -421,7 +421,7 @@ class QueryBuilder{
             Engine::init($auxClass);
             
 			$auxClass = ltrim($auxClass, '\\');
-            $table = Engine::$map[$auxClass]['table'];
+            $table = '`'.Engine::$map[$auxClass]['table'].'`';
             $char = $this->chars[$i];
             $pk = Engine::getPk($auxClass);
 			if($property['relType'] == Engine::MANY_TO_ONE){
@@ -429,7 +429,7 @@ class QueryBuilder{
 			}else if($property['relType'] == Engine::ONE_TO_MANY){
 				$join = 'left join '.$table.' '.$alias.$char.' on('.$alias.$char.'.'.$property['joinColumn'].' = '.$classAlias.'.'.$pk['column'].')';
 			}else if($property['relType'] == Engine::MANY_TO_MANY){
-				$joinTable = $property['joinTable'];
+				$joinTable = '`'.$property['joinTable'].'`';
 				$joinPk = Engine::getPk($property['itemClass']);
 				$join = 'left join '.$joinTable.' '.$alias.$char.'_j'.' on('.$alias.$char.'_j'.'.'.$property['joinColumn'].' = '.$classAlias.'.'.$pk['column'].')'
 						. ' left join '.$table.' '.$alias.$char.' on('.$alias.$char.'.'.$joinPk['column'].' = '.$alias.$char.'_j'.'.'.$property['inverseJoinColumn'].')';

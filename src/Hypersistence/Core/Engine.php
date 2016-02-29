@@ -3,7 +3,7 @@ namespace Hypersistence\Core;
 
 class Engine{
 	
-	const VERSION = '0.2.50';
+	const VERSION = '0.2.57';
 	
 	public static $map;
 	
@@ -239,7 +239,7 @@ class Engine{
 		while ($class != '' && $class != 'Hypersistence'){
 			$alias = $aliases[$i];
 			$class = ltrim($class, '\\');
-			$tables[] = self::$map[$class][self::$TAG_TABLE].' '.$alias;
+			$tables[] = '`'.self::$map[$class][self::$TAG_TABLE].'` '.$alias;
 			
 			if(self::$map[$class]['parent'] != 'Hypersistence'){
 				$parent = self::$map[$class]['parent'];
@@ -364,8 +364,8 @@ class Engine{
 		$i = 0;
 		while ($class != '' && $class != 'Hypersistence'){
             $class = ltrim($class, '\\');
-			$tables[] = self::$map[$class][self::$TAG_TABLE];
-			$table = self::$map[$class][self::$TAG_TABLE];
+			$table = '`'.self::$map[$class][self::$TAG_TABLE].'`';
+			$tables[] = $table;
 			$parent = self::$map[$class]['parent'];
 			if($parent != 'Hypersistence'){
 				$pk = self::getPk(self::$map[$parent]['class']);
@@ -411,8 +411,8 @@ class Engine{
 		$i = 0;
 		while ($class != '' && $class != 'Hypersistence'){
             $class = ltrim($class, '\\');
-			$tables[] = self::$map[$class][self::$TAG_TABLE];
-			$table = self::$map[$class][self::$TAG_TABLE];
+			$table = '`'.self::$map[$class][self::$TAG_TABLE].'`';
+			$tables[] = $table;
 			$parent = self::$map[$class]['parent'];
 			if($parent != 'Hypersistence'){
 				$pk = self::getPk(self::$map[$parent]['class']);
@@ -496,7 +496,7 @@ class Engine{
 				}
 				
 				if(count($fields)){
-					$sql = 'update '.self::$map[$class][self::$TAG_TABLE].' set '.implode(',', $fields).' where '.$where;
+					$sql = 'update `'.self::$map[$class][self::$TAG_TABLE].'` set '.implode(',', $fields).' where '.$where;
 				}
 			}else{//INSERT
 				$values = array();
@@ -532,7 +532,7 @@ class Engine{
 				}
 				
 				if(count($fields)){
-					$sql = 'insert into '.self::$map[$class][self::$TAG_TABLE].' ('.implode(',', $fields).') values ('.implode(',', $values).')';
+					$sql = 'insert into `'.self::$map[$class][self::$TAG_TABLE].'` ('.implode(',', $fields).') values ('.implode(',', $values).')';
 				}
 				
 			}
@@ -599,7 +599,7 @@ class Engine{
 						$obj = $arguments[0];
 						if($obj instanceof $class){
 							
-							$table = $property['joinTable'];
+							$table = '`'.$property['joinTable'].'`';
 							$inverseColumn = $property[self::$TAG_INVERSE_JOIN_COLUMN];
 							$column = $property[self::$TAG_JOIN_COLUMN];
 						
