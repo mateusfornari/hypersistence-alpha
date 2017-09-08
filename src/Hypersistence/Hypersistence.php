@@ -1,4 +1,6 @@
 <?php
+namespace Hypersistence;
+
 require_once 'Core'.DIRECTORY_SEPARATOR.'Engine.php';
 
 class Hypersistence extends \Hypersistence\Core\Engine{
