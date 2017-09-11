@@ -3,7 +3,7 @@
 /**
  * @table(person)
  */
-class Person extends Hypersistence{
+class Person extends BaseModel{
 	
 	/**
 	 * @primaryKey 

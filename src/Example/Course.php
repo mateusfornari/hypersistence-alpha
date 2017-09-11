@@ -2,7 +2,7 @@
 /**
  * @table(course)
  */
-class Course extends Hypersistence{
+class Course extends BaseModel{
     /**
      * @primaryKey 
      */

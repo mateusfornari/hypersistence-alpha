@@ -1,9 +1,11 @@
 <?php
 
+
+
 /**
  * @table(book)
  */
-class Book extends Hypersistence{
+class Book extends BaseModel{
 	
 	/**
 	 * @primaryKey

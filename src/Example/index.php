@@ -2,9 +2,11 @@
 
 require_once '../Hypersistence/Hypersistence.php';
 
+use Hypersistence\Hypersistence;
+
 Hypersistence::registerAutoloader();
 
-
+require_once './BaseModel.php';
 require_once './Person.php';
 require_once './Book.php';
 require_once './Student.php';

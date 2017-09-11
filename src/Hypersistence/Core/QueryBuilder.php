@@ -88,7 +88,7 @@ class QueryBuilder{
 					$get = 'get'.$p['var'];
 					$value = $this->object->$get();
 					if(!is_null($value)){
-						if($value instanceof \Hypersistence){
+						if($value instanceof \Hypersistence\Hypersistence){
 							if($p['relType'] == Engine::MANY_TO_ONE || $p['relType'] == Engine::ONE_TO_MANY || $p['relType'] == Engine::MANY_TO_MANY){
 								$this->joinFilter($class, $p, $value, $alias);
 							}

@@ -3,7 +3,7 @@
 /**
  * @table(city)
  */
-class City extends Hypersistence{
+class City extends BaseModel{
 	/**
 	 * @primaryKey
 	 */

@@ -3,7 +3,7 @@ namespace Hypersistence\Core;
 
 class Engine{
 	
-	const VERSION = '0.2.57';
+	const VERSION = '0.2.61';
 	
 	public static $map;
 	
@@ -45,15 +45,12 @@ class Engine{
 	 * @param \ReflectionClass $refClass
 	 */
 	private static function mapClass($refClass){
-		if($refClass->name != 'Hypersistence'){
+		if($refClass->name != 'Hypersistence' && self::is($refClass, self::$TAG_TABLE)){
 			if(!isset(self::$map[$refClass->name])){
 				$table = self::getAnnotationValue($refClass, self::$TAG_TABLE);
 				$joinColumn = self::getAnnotationValue($refClass, self::$TAG_JOIN_COLUMN);
 				if(!$table){
 					throw new \Exception('You must specify the table for class '.$refClass->name.'!');
-				}
-				if($refClass->getParentClass()->name != 'Hypersistence' && !$joinColumn){
-					throw new \Exception('You must specify the join column for subclass '.$refClass->name.'!');
 				}
 				self::$map[$refClass->name] = array(
 					self::$TAG_TABLE => $table,
@@ -62,6 +59,13 @@ class Engine{
 					'class' => $refClass->name,
 					'properties' => array()
 				);
+				if(self::is($refClass->getParentClass(), self::$TAG_TABLE)){
+					if(!$joinColumn){
+						throw new \Exception('You must specify the join column for subclass '.$refClass->name.'!');
+					}
+				}else{
+					self::$map[$refClass->name]['parent'] = 'Hypersistence';
+				}
 				
 				$properties = $refClass->getProperties();
 				foreach ($properties as $p){
@@ -480,7 +484,7 @@ class Engine{
 						$fields[] = $p[self::$TAG_COLUMN].' = :'.$p[self::$TAG_COLUMN];
 						if($p['relType'] == self::MANY_TO_ONE){
 							$obj = $this->$get();
-							if($obj && $obj instanceof \Hypersistence){
+							if($obj && $obj instanceof \Hypersistence\Hypersistence){
 								$objClass = $p[self::$TAG_ITEM_CLASS];
 								self::init($objClass);
 								$objPk = self::getPk($objClass);
@@ -516,7 +520,7 @@ class Engine{
 						$values[] = ':'.$p[self::$TAG_COLUMN];
 						if($p['relType'] == self::MANY_TO_ONE){
 							$obj = $this->$get();
-							if($obj && $obj instanceof \Hypersistence){
+							if($obj && $obj instanceof \Hypersistence\Hypersistence){
 								$objClass = $p[self::$TAG_ITEM_CLASS];
 								self::init($objClass);
 								$objPk = self::getPk($objClass);

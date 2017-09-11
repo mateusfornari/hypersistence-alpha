@@ -3,7 +3,7 @@ namespace Hypersistence\Core;
 
 class Statement extends \PDOStatement{
 	
-	public function execute(array $input_parameters = null){
+	public function execute($input_parameters = null){
 	
 		if(!is_null($input_parameters)){
 			foreach ($input_parameters as $key => $param){
